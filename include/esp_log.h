@@ -7,6 +7,9 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include "sdkconfig.h"
+
+#include "esp_rom_sys.h"
+
 #if CONFIG_IDF_TARGET_ESP32
 	#include "esp32/rom/ets_sys.h"
 #elif CONFIG_IDF_TARGET_ESP32S2
@@ -256,7 +259,7 @@ void esp_log_writev(esp_log_level_t level, const char* tag, const char* format, 
 #define ESP_LOG_EARLY_IMPL(tag, format, log_level, log_tag_letter, ...) 									\
 	do{	if (LOG_LOCAL_LEVEL >= log_level) {																	\
     		uint32_t mSec = esp_log_early_timestamp() ;														\
-    		ets_printf(LOG_MYFORM(log_tag_letter, format), mSec / 1000, mSec % 1000, tag, ##__VA_ARGS__) ;	\
+    		esp_rom_printf(LOG_MYFORM(log_tag_letter, format), mSec / 1000, mSec % 1000, tag, ##__VA_ARGS__) ;	\
     	}																									\
 	} while(0)
 
@@ -295,7 +298,7 @@ void esp_log_writev(esp_log_level_t level, const char* tag, const char* format, 
 #define ESP_DRAM_LOG_IMPL(tag, format, log_level, log_tag_letter, ...) do {									\
         if (LOG_LOCAL_LEVEL >= log_level) {																	\
         	uint32_t mSec = esp_log_early_timestamp() ;														\
-			ets_printf(_LOG_MYFORM(log_tag_letter, format), mSec / 1000, mSec % 1000, tag, ##__VA_ARGS__) ;	\
+        	esp_rom_printf(_LOG_MYFORM(log_tag_letter, format), mSec / 1000, mSec % 1000, tag, ##__VA_ARGS__) ;	\
         } } while(0) ;
 
 #define ESP_DRAM_LOGE( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_ERROR,   E, ##__VA_ARGS__)

@@ -52,7 +52,7 @@ void IRAM_ATTR esp_log_writev(esp_log_level_t level, const char* tag, const char
 		int32_t Len = xstrlen(format) ;
 		// try to identify the format string structure and skip as required
 #if		(debugTRACK)
-		ets_printf("f='%s' => ", format) ;
+		esp_rom_printf("f='%s' => ", format) ;
 #endif
 		int32_t	Idx ;
 		if (Len > 17 && format[17] == ':') {				// "0   123456789012345678"
@@ -78,14 +78,14 @@ void IRAM_ATTR esp_log_writev(esp_log_level_t level, const char* tag, const char
 		// Handle unexpected duplicate OR extra CRLF lines for each "wifi" event
 		if (Len == 2 && strcmp(format, "%s") == 0 && strcmp(tag, "wifi") == 0) {
 #if		(debugSKIP)
-			ets_printf("Skipped duplicate (CRLF?) line\n") ;
+			esp_rom_printf("Skipped duplicate (CRLF?) line\n") ;
 #endif
 			return ;
 		}
 		xvSyslog(esp_log_xlate[level], tag, format, args) ;
 	} else {
 #if		(debugSKIP)
-		ets_printf("Skipped l=%d  t='%s'  f='%s'  p=0x%08X\n", level, tag, format, va_arg(args, void *)) ;
+		esp_rom_printf("Skipped l=%d  t='%s'  f='%s'  p=0x%08X\n", level, tag, format, va_arg(args, void *)) ;
 #endif
 	}
 }
