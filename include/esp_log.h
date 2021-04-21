@@ -254,7 +254,7 @@ void esp_log_writev(esp_log_level_t level, const char* tag, const char* format, 
 
 #define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%d) %s: " format LOG_RESET_COLOR "\n"
 #define LOG_SYSTEM_TIME_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%s) %s: " format LOG_RESET_COLOR "\n"
-#define LOG_MYFORM(letter, format)  LOG_COLOR_ ## letter "%2d.%03d: #0 %s " format LOG_RESET_COLOR "\n"
+#define LOG_MYFORM(letter, format)  LOG_COLOR_ ## letter "%d.%03d: #0 %s " format LOG_RESET_COLOR "\n"
 
 #define ESP_LOG_EARLY_IMPL(tag, format, log_level, log_tag_letter, ...) 									\
 	do{	if (LOG_LOCAL_LEVEL >= log_level) {																	\
@@ -293,7 +293,7 @@ void esp_log_writev(esp_log_level_t level, const char* tag, const char* format, 
 #endif  // BOOTLOADER_BUILD
 
 #define _ESP_LOG_DRAM_LOG_FORMAT(letter, format)  DRAM_STR(#letter " %s: " format "\n")
-#define _LOG_MYFORM(letter, format)  DRAM_STR("%2d.%03d: l" #letter " %s " format "\n")
+#define _LOG_MYFORM(letter, format)  DRAM_STR("%d.%03d: l" #letter " %s " format "\n")
 
 #define ESP_DRAM_LOG_IMPL(tag, format, log_level, log_tag_letter, ...) do {									\
         if (LOG_LOCAL_LEVEL >= log_level) {																	\
