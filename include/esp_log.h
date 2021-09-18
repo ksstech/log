@@ -151,12 +151,10 @@ void esp_log_write(esp_log_level_t level, const char* tag, const char* format, .
  * so that esp_log can be used as a log sink.
  */
 void esp_log_writev(esp_log_level_t level, const char* tag, const char* format, va_list args) ;
-
-int	xSyslog(uint32_t Priority, const char * MsgID, const char * format, ...) ;
-
+int	xSyslog(int Priority, const char * MsgID, const char * format, ...) ;
 /** @cond */
 
-#include "../../log/include/esp_log_internal.h"
+#include "esp_log_internal.h"
 
 #ifndef LOG_LOCAL_LEVEL
 #ifndef BOOTLOADER_BUILD
@@ -288,14 +286,9 @@ int	xSyslog(uint32_t Priority, const char * MsgID, const char * format, ...) ;
 #define LOG_COLOR_V
 #define LOG_RESET_COLOR
 #endif //CONFIG_LOG_COLORS
-
 // ##################################### Early stage LOGging #######################################
 
 #define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%u) %s: " format LOG_RESET_COLOR "\n"
-#define LOG_SYSTEM_TIME_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%s) %s: " format LOG_RESET_COLOR "\n"
-#define LOG_FORMATX(letter, format) "%d.%03d: %s" format "\n"
-
-/** @endcond */
 
 /// macro to output logs in startup code, before heap allocator and syscalls have been initialized. log at ``ESP_LOG_ERROR`` level. @see ``printf``,``ESP_LOGE``,``ESP_DRAM_LOGE``
 #define portGET_ARGUMENT_COUNT_INNER(zero, one, count, ...) count
@@ -336,13 +329,19 @@ int	xSyslog(uint32_t Priority, const char * MsgID, const char * format, ...) ;
    currently configured min log level are higher than the log level */
 #define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level) && esp_log_default_level >= (log_level))
 #endif
+#if 1
+#define ESP_LOG_EARLY_IMPL(tag, format, log_level, log_tag_letter, ...) do {				\
+	if (_ESP_LOG_EARLY_ENABLED(log_level)) { uint32_t mSec = esp_log_timestamp();			\
+		esp_rom_printf("%d.%03d: #0 boot %s " format "\n", mSec/1000, mSec%1000, tag, ##__VA_ARGS__);\
+	}} while(0)
+#else
+#define ESP_LOG_EARLY_IMPL(tag, format, log_level, log_tag_letter, ...) do {				\
+	if (_ESP_LOG_EARLY_ENABLED(log_level)) {															\
+		esp_rom_printf(LOG_FORMAT(log_tag_letter, format), esp_log_timestamp(), tag, ##__VA_ARGS__);	\
+	}} while(0)
+#endif
 
-#define ESP_LOG_EARLY_IMPL(tag, format, log_level, log_tag_letter, ...) do {								\
-	if (_ESP_LOG_EARLY_ENABLED(log_level)) { uint32_t mSec = esp_log_early_timestamp();						\
-		esp_rom_printf(LOG_FORMATX(log_tag_letter, format), mSec/1000, mSec%1000, tag, ##__VA_ARGS__) ;	\
-    }} while(0)
-
-// ################################### APPLICATION level LOGGing ###################################
+// ################################### APPLICATION level LOGging ###################################
 
 #ifndef BOOTLOADER_BUILD
 #if defined(__cplusplus) && (__cplusplus >  201703L)
@@ -401,23 +400,29 @@ int	xSyslog(uint32_t Priority, const char * MsgID, const char * format, ...) ;
  *
  * @see ``printf``
  */
-/* Since we ONLY support a single time format, THUS NO NEED FOR EXTRA TIME PARAMETER(S) AND
- * we do not build hard-coded format strings with the E/W/I/D/V prefix character
- * we can simplify the macro definitions to a single macro */
+/* ONLY support a single time format, do not build hard-coded format strings (EWIDV)
+ * Simplify the macro definitions to a single macro (for now till C++ 2017 support) */
 #if defined(__cplusplus) && (__cplusplus >  201703L)
-	#define ESP_LOG_LEVEL(level, tag, format, ...) do { 				\
-		esp_log_write(level, tag __VA_OPT__(,) format, __VA_ARGS__);	\
+
+#define ESP_LOG_LEVEL(level,tag,format,...) do {		\
+		esp_log_write(level, tag, format, ##__VA_ARGS__);	\
 	} while(0)
+
 #else // !(defined(__cplusplus) && (__cplusplus >  201703L))
-	#define ESP_LOG_LEVEL(level, tag, format, ...) do {		\
-		xSyslog(level+2, tag, format, ##__VA_ARGS__);		\
-	} while(0)
+
+#define ESP_LOG_LEVEL(level,tag,format,...) do{esp_log_write(level,tag,format,##__VA_ARGS__);}while(0)
+
 #endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
 
-#define ESP_LOG_LEVEL_LOCAL( level, tag, format, ... ) do { 								\
-		if (LOG_LOCAL_LEVEL >= level) ESP_LOG_LEVEL(level, tag, format, ## __VA_ARGS__);	\
+/** runtime macro to output logs at a specified level. Also check the level with ``LOG_LOCAL_LEVEL``.
+ *
+ * @see ``printf``, ``ESP_LOG_LEVEL``
+ */
+#define ESP_LOG_LEVEL_LOCAL( level, tag, format, ... ) do { 							\
+		if (LOG_LOCAL_LEVEL >= level) ESP_LOG_LEVEL(level, tag, format, ## __VA_ARGS__);\
 	} while(0)
 
+// ################################### Cache DISABLED LOGging ######################################
 /**
  * @brief Macro to output logs when the cache is disabled. log at ``ESP_LOG_ERROR`` level.
  *
@@ -465,10 +470,15 @@ int	xSyslog(uint32_t Priority, const char * MsgID, const char * format, ...) ;
     	esp_rom_printf(_ESP_LOG_DRAM_LOG_FORMAT(log_tag_letter, format), mSec/1000, mSec%1000, tag __VA_OPT__(,) __VA_ARGS__);	\
 	}} while(0)
 #else // !(defined(__cplusplus) && (__cplusplus >  201703L))
-#define ESP_DRAM_LOG_IMPL(tag, format, log_level, log_tag_letter, ...) do {										\
-	if (_ESP_LOG_EARLY_ENABLED(log_level)) { uint32_t mSec = esp_log_early_timestamp() ;					\
+#define ESP_DRAM_LOG_IMPL(tag, format, log_level, log_tag_letter, ...) do {                       \
+        if (_ESP_LOG_EARLY_ENABLED(log_level)) {                                                  \
+            esp_rom_printf(_ESP_LOG_DRAM_LOG_FORMAT(log_tag_letter, format), tag, ##__VA_ARGS__); \
+        }} while(0)
+/*#define ESP_DRAM_LOG_IMPL(tag, format, log_level, log_tag_letter, ...) do {										\
+	if (_ESP_LOG_EARLY_ENABLED(log_level)) {		\
+		uint32_t mSec = esp_log_early_timestamp() ;	\
 		esp_rom_printf(_ESP_LOG_DRAM_LOG_FORMAT(log_tag_letter, format), mSec / 1000, mSec % 1000, tag, ##__VA_ARGS__) ;	\
-	}} while(0)
+	}} while(0)*/
 #endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
 /** @endcond */
 

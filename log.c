@@ -3,6 +3,8 @@
  * redirects log output to syslog functionality
  */
 
+#include	"hal_config.h"
+#include	"printfx.h"
 #include	"x_string_general.h"
 
 #include	"esp_attr.h"
@@ -16,7 +18,7 @@
 #include	<assert.h>
 #include	<ctype.h>
 
-#include "../log/include/esp_log.h"
+#include "esp_log.h"
 #include "sys/queue.h"
 #include "soc/soc_memory_layout.h"
 
@@ -48,40 +50,26 @@ void esp_log_level_set(const char* tag, esp_log_level_t level) { esp_log_default
  * #3 format="%s" and prints CR/LF pair hence discard
  */
 void IRAM_ATTR esp_log_writev(esp_log_level_t level, const char* tag, const char * format, va_list args) {
-	int Len = strlen(format) ;
-	// try to identify the format string structure and skip as required
-	IF_EXEC_2(debugFORMAT, esp_rom_printf, "f='%s' => ", format) ;
-	int	Idx ;
-	if (Len > 17 && format[17] == ':') {				// "0   123456789012345678"
-		Idx = 18 ;										// "\033[0;3?m%c (%d) %s: "
-	} else if (Len >= 11 && format[10] == ':') {		// "01234567890"
-		Idx = 11 ;										// "%c (%d) %s: "
-	} else {
-		Idx = 0 ;
+	if (format) {
+		void * pV = strstr(format, "%c (%d) %s:");
+		if (pV) {
+			format = pV + (sizeof("%c (%d)") - 1);
+			pV = va_arg(args, void *);					// spill tag (2nd copy)
+			int xTS = va_arg(args, int);				// spill the timestamp
+			(void) xTS;
+		}
+		if ((strcmp(tag, "wifi") == 0) &&				// resolve WIFI lib anomalies
+		   ((strcmp(format, " %s:") == 0) ||			// remove extra " wifi:"
+			(strcmp(format, "%s") == 0))) {				// remove extra CRLF
+			return;
+		}
 	}
-	// now remove some variables from stack if required...
-	if (Idx) {
-		format += Idx ;
-		Len -= Idx ;
-		void * pVoid ;
-		pVoid = va_arg(args, void *) ;					// spill tag (2nd copy)
-		pVoid = va_arg(args, void *) ;					// spill the timestamp
-		(void) pVoid ;
-	}
-
-	if (Len == 0) return;								// nothing left to print
-
-	// Handle unexpected duplicate OR extra CRLF lines for each "wifi" event
-	if (Len == 2 && strcmp(format, "%s") == 0 && strcmp(tag, "wifi") == 0) {
-		IF_EXEC_1(debugSKIP, esp_rom_printf, "Skipped duplicate (CR/LF) line\n") ;
-		return ;
-	}
-	xvSyslog(level+2, tag, format, args) ;
+	xvSyslog(level+2, tag, format, args);
 }
 
 void IRAM_ATTR esp_log_write(esp_log_level_t level, const char* tag, const char* format, ...) {
-	va_list vArgs ;
-	va_start(vArgs, format) ;
-	esp_log_writev(level, tag, format, vArgs) ;
-	va_end(vArgs) ;
+	va_list vArgs;
+	va_start(vArgs, format);
+	esp_log_writev(level, tag, format, vArgs);
+	va_end(vArgs);
 }
