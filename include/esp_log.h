@@ -79,7 +79,7 @@ void esp_log_level_set(const char* tag, esp_log_level_t level);
  *
  * @return The current log level for the given tag
  */
-//esp_log_level_t esp_log_level_get(const char* tag);
+esp_log_level_t esp_log_level_get(const char* tag);
 
 /**
  * @brief Set function used to output log entries
@@ -92,7 +92,7 @@ void esp_log_level_set(const char* tag, esp_log_level_t level);
  *
  * @return func old Function used for output.
  */
-//vprintf_like_t esp_log_set_vprintf(vprintf_like_t func);
+vprintf_like_t esp_log_set_vprintf(vprintf_like_t func);
 
 /**
  * @brief Function which returns timestamp to be used in log output
@@ -121,7 +121,7 @@ uint32_t esp_log_timestamp(void);
  *
  * @return timestamp, in "HH:MM:SS.sss"
  */
-//char* esp_log_system_timestamp(void);
+char* esp_log_system_timestamp(void);
 
 /**
  * @brief Function which returns timestamp to be used in log output
@@ -158,7 +158,7 @@ int	xSyslog(int Priority, const char * MsgID, const char * format, ...) ;
 
 #ifndef LOG_LOCAL_LEVEL
 #ifndef BOOTLOADER_BUILD
-#define LOG_LOCAL_LEVEL  CONFIG_LOG_MAXIMUM_LEVEL
+#define LOG_LOCAL_LEVEL  CONFIG_LOG_DEFAULT_LEVEL	// CONFIG_LOG_MAXIMUM_LEVEL
 #else
 #define LOG_LOCAL_LEVEL  CONFIG_BOOTLOADER_LOG_LEVEL
 #endif
