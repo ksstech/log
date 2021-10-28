@@ -38,7 +38,7 @@ esp_log_level_t esp_log_default_level = CONFIG_LOG_DEFAULT_LEVEL;
 
 // ################################# forward function declarations #################################
 
-int	xvSyslog(int Priority, const char * MsgID, const char * format, va_list args) ;
+void xvSyslog(int Priority, const char * MsgID, const char * format, va_list args) ;
 
 // #################################### publi/global functions #####################################
 
