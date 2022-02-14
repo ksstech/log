@@ -11,6 +11,8 @@
 #include <stdarg.h>
 #include "sdkconfig.h"
 #include "esp_rom_sys.h"
+#include "hal/cpu_hal.h"
+
 #if CONFIG_IDF_TARGET_ESP32
 #include "esp32/rom/ets_sys.h" // will be removed in idf v5.0
 #elif CONFIG_IDF_TARGET_ESP32S2
@@ -332,7 +334,7 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...) ;
 #if 1
 #define ESP_LOG_EARLY_IMPL(tag, format, log_level, log_tag_letter, ...) do {				\
 	if (_ESP_LOG_EARLY_ENABLED(log_level)) { uint32_t mSec = esp_log_timestamp();			\
-		esp_rom_printf("%d.%03d: #0 boot %s " format "\n", mSec/1000, mSec%1000, tag, ##__VA_ARGS__);\
+		esp_rom_printf("%d.%03d: #%d boot %s " format "\n", mSec/1000, mSec%1000, cpu_hal_get_core_id(), tag, ##__VA_ARGS__);\
 	}} while(0)
 #else
 #define ESP_LOG_EARLY_IMPL(tag, format, log_level, log_tag_letter, ...) do {				\
