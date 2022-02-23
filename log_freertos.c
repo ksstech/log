@@ -7,13 +7,13 @@
 #include <stdint.h>
 #include <time.h>
 #include <sys/time.h>
-#include "../log/esp_log_private.h"
-#include "../log/include/esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
 #include "hal/cpu_hal.h" // for cpu_hal_get_cycle_count()
 #include "esp_compiler.h"
+#include "esp_log.h"
+#include "esp_log_private.h"
 
 
 // Maximum time to wait for the mutex in a logging statement.
