@@ -331,17 +331,10 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...) ;
    currently configured min log level are higher than the log level */
 #define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level) && esp_log_default_level >= (log_level))
 #endif
-#if 1
 #define ESP_LOG_EARLY_IMPL(tag, format, log_level, log_tag_letter, ...) do {				\
 	if (_ESP_LOG_EARLY_ENABLED(log_level)) { uint32_t mSec = esp_log_timestamp();			\
 		esp_rom_printf("%d.%03d: #%d boot %s " format "\n", mSec/1000, mSec%1000, cpu_hal_get_core_id(), tag, ##__VA_ARGS__);\
 	}} while(0)
-#else
-#define ESP_LOG_EARLY_IMPL(tag, format, log_level, log_tag_letter, ...) do {				\
-	if (_ESP_LOG_EARLY_ENABLED(log_level)) {															\
-		esp_rom_printf(LOG_FORMAT(log_tag_letter, format), esp_log_timestamp(), tag, ##__VA_ARGS__);	\
-	}} while(0)
-#endif
 
 // ################################### APPLICATION level LOGging ###################################
 
