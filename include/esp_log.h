@@ -411,7 +411,9 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...) ;
 
 #else // !(defined(__cplusplus) && (__cplusplus >  201703L))
 
-#define ESP_LOG_LEVEL(level,tag,format,...) do{esp_log_write(level,tag,format,##__VA_ARGS__);}while(0)
+#define ESP_LOG_LEVEL(level,tag,format,...) do {			\
+			esp_log_write(level,tag,format,##__VA_ARGS__);	\
+		} while(0)
 
 #endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
 
@@ -466,8 +468,9 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...) ;
 #define _ESP_LOG_DRAM_LOG_FORMAT(letter, format)  DRAM_STR("%d.%03d: %s " format "\n")
 
 #if defined(__cplusplus) && (__cplusplus >  201703L)
-#define ESP_DRAM_LOG_IMPL(tag, format, log_level, log_tag_letter, ...) do {                                  		\
-	if (_ESP_LOG_EARLY_ENABLED(log_level)) { uint32_t mSec = esp_log_early_timestamp() ;						\
+#define ESP_DRAM_LOG_IMPL(tag, format, log_level, log_tag_letter, ...) do {	\
+	if (_ESP_LOG_EARLY_ENABLED(log_level)) {								\
+		uint32_t mSec = esp_log_early_timestamp() ;							\
     	esp_rom_printf(_ESP_LOG_DRAM_LOG_FORMAT(log_tag_letter, format), mSec/1000, mSec%1000, tag __VA_OPT__(,) __VA_ARGS__);	\
 	}} while(0)
 #else // !(defined(__cplusplus) && (__cplusplus >  201703L))
