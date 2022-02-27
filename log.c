@@ -68,8 +68,8 @@ void IRAM_ATTR esp_log_writev(esp_log_level_t level, const char* tag, const char
 }
 
 void IRAM_ATTR esp_log_write(esp_log_level_t level, const char* tag, const char* format, ...) {
-	va_list vArgs;
-	va_start(vArgs, format);
-	esp_log_writev(level, tag, format, vArgs);
-	va_end(vArgs);
+	va_list args;
+	va_start(args, format);
+	esp_log_writev(level, tag, format, args);
+	va_end(args);
 }

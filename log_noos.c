@@ -5,7 +5,7 @@
  */
 
 #include <assert.h>
-#include "../log/esp_log_private.h"
+#include "esp_log_private.h"
 #include "hal/cpu_hal.h"  // for cpu_hal_get_cycle_count()
 
 static int s_lock = 0;
