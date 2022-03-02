@@ -332,15 +332,26 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...) ;
 #define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level) && esp_log_default_level >= (log_level))
 #endif
 
-#define	earlyFORMAT "\033[%dm%d.%03d: #%d boot %s "
+#define	myFORMAT1 "%d.%03d: #%d boot %s "
+#define	myFORMAT2(f) "" f "\n"
+#if 1
 #define ESP_LOG_EARLY_IMPL(tag, format, level, log_tag_letter, ...) do {	\
 		if (_ESP_LOG_EARLY_ENABLED(level)) { 								\
-			uint32_t mS = esp_log_early_timestamp();						\
-			esp_rom_printf(earlyFORMAT, 30+level, mS/1000, mS%1000, cpu_hal_get_core_id(), tag);	\
+			uint32_t mS = esp_log_timestamp();								\
+			esp_rom_printf(myFORMAT1, mS/1000, mS%1000, cpu_hal_get_core_id(), tag);	\
+			esp_rom_printf(myFORMAT2(format), ##__VA_ARGS__);							\
+		}																	\
+	} while(0)
+#else
+#define ESP_LOG_EARLY_IMPL(tag, format, level, log_tag_letter, ...) do {	\
+		if (_ESP_LOG_EARLY_ENABLED(level)) { 								\
+			uint32_t mS = esp_log_timestamp();								\
+			esp_rom_printf(myFORMAT1, 30+level, mS/1000, mS%1000, cpu_hal_get_core_id(), tag);	\
 			esp_rom_printf(format, ##__VA_ARGS__);							\
 			esp_rom_printf("\033[0m\n");									\
 		}																	\
 	} while(0)
+#endif
 
 // ################################### APPLICATION level LOGging ###################################
 

@@ -3,10 +3,6 @@
  * redirects log output to syslog functionality
  */
 
-#include	"hal_config.h"
-#include	"printfx.h"
-#include	"x_string_general.h"
-
 #include	"esp_attr.h"
 #include	"xtensa/hal.h"
 #include	"soc/soc.h"
@@ -18,9 +14,13 @@
 #include	<assert.h>
 #include	<ctype.h>
 
-#include "esp_log.h"
-#include "sys/queue.h"
-#include "soc/soc_memory_layout.h"
+#include	"esp_log.h"
+#include	"sys/queue.h"
+#include	"soc/soc_memory_layout.h"
+
+#include	"hal_config.h"
+#include	"printfx.h"
+#include	"x_string_general.h"
 
 #define	debugFLAG					(0xF000)
 
