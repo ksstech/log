@@ -6,13 +6,11 @@
 
 #pragma once
 
-
 #include <stdint.h>
 #include <stdarg.h>
 #include "sdkconfig.h"
 #include "esp_rom_sys.h"
-#include "hal/cpu_hal.h"
-
+#include "hal/cpu_hal.h"		// AMM
 #if CONFIG_IDF_TARGET_ESP32
 #include "esp32/rom/ets_sys.h" // will be removed in idf v5.0
 #elif CONFIG_IDF_TARGET_ESP32S2
@@ -23,6 +21,8 @@
 #include "esp32c3/rom/ets_sys.h"
 #elif CONFIG_IDF_TARGET_ESP32H2
 #include "esp32h2/rom/ets_sys.h"
+#elif CONFIG_IDF_TARGET_ESP8684
+#include "esp8684/rom/ets_sys.h"
 #endif
 
 #ifdef __cplusplus
@@ -152,8 +152,10 @@ void esp_log_write(esp_log_level_t level, const char* tag, const char* format, .
  * This function is provided to ease integration toward other logging framework,
  * so that esp_log can be used as a log sink.
  */
-void esp_log_writev(esp_log_level_t level, const char* tag, const char* format, va_list args) ;
-void vSyslog(int Priority, const char * MsgID, const char * format, ...) ;
+void esp_log_writev(esp_log_level_t level, const char* tag, const char* format, va_list args);
+
+void vSyslog(int Priority, const char * MsgID, const char * format, ...);
+
 /** @cond */
 
 #include "esp_log_internal.h"
@@ -288,11 +290,14 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...) ;
 #define LOG_COLOR_V
 #define LOG_RESET_COLOR
 #endif //CONFIG_LOG_COLORS
-// ##################################### Early stage LOGging #######################################
 
 #define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%u) %s: " format LOG_RESET_COLOR "\n"
+//#define LOG_SYSTEM_TIME_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%s) %s: " format LOG_RESET_COLOR "\n"
 
-/// macro to output logs in startup code, before heap allocator and syscalls have been initialized. log at ``ESP_LOG_ERROR`` level. @see ``printf``,``ESP_LOGE``,``ESP_DRAM_LOGE``
+/** @endcond */
+
+/// macro to output logs in startup code, before heap allocator and syscalls have been initialized.
+// Log at ``ESP_LOG_ERROR`` level. @see ``printf``,``ESP_LOGE``,``ESP_DRAM_LOGE``
 #define portGET_ARGUMENT_COUNT_INNER(zero, one, count, ...) count
 
 /**
@@ -332,28 +337,11 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...) ;
 #define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level) && esp_log_default_level >= (log_level))
 #endif
 
-#define	myFORMAT1 "%d.%03d: #%d boot %s "
-#define	myFORMAT2(f) "" f "\n"
-#if 1
-#define ESP_LOG_EARLY_IMPL(tag, format, level, log_tag_letter, ...) do {	\
-		if (_ESP_LOG_EARLY_ENABLED(level)) { 								\
-			uint32_t mS = esp_log_timestamp();								\
-			esp_rom_printf(myFORMAT1, mS/1000, mS%1000, cpu_hal_get_core_id(), tag);	\
-			esp_rom_printf(myFORMAT2(format), ##__VA_ARGS__);							\
-		}																	\
-	} while(0)
-#else
-#define ESP_LOG_EARLY_IMPL(tag, format, level, log_tag_letter, ...) do {	\
-		if (_ESP_LOG_EARLY_ENABLED(level)) { 								\
-			uint32_t mS = esp_log_timestamp();								\
-			esp_rom_printf(myFORMAT1, 30+level, mS/1000, mS%1000, cpu_hal_get_core_id(), tag);	\
-			esp_rom_printf(format, ##__VA_ARGS__);							\
-			esp_rom_printf("\033[0m\n");									\
-		}																	\
-	} while(0)
-#endif
-
-// ################################### APPLICATION level LOGging ###################################
+#define ESP_LOG_EARLY_IMPL(tag, format, level, log_tag_letter, ...) do {							\
+		if (_ESP_LOG_EARLY_ENABLED(level)) { uint32_t mS = esp_log_timestamp();						\
+			esp_rom_printf("%d.%03d: #%d boot %s ", mS/1000, mS%1000, cpu_hal_get_core_id(), tag);	\
+			esp_rom_printf("" format "\n", ##__VA_ARGS__);											\
+		}} while(0)
 
 #ifndef BOOTLOADER_BUILD
 #if defined(__cplusplus) && (__cplusplus >  201703L)
@@ -436,7 +424,6 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...) ;
 		if (LOG_LOCAL_LEVEL >= level) ESP_LOG_LEVEL(level, tag, format, ## __VA_ARGS__);\
 	} while(0)
 
-// ################################### Cache DISABLED LOGging ######################################
 /**
  * @brief Macro to output logs when the cache is disabled. log at ``ESP_LOG_ERROR`` level.
  *
@@ -476,13 +463,13 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...) ;
 #endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
 
 /** @cond */
-#define _ESP_LOG_DRAM_LOG_FORMAT(letter, format)  DRAM_STR("%d.%03d: %s " format "\n")
+#define _ESP_LOG_DRAM_LOG_FORMAT(tag, format)  DRAM_STR("%d.%03d: %s " format "\n")
 
 #if defined(__cplusplus) && (__cplusplus >  201703L)
 #define ESP_DRAM_LOG_IMPL(tag, format, log_level, log_tag_letter, ...) do {	\
 	if (_ESP_LOG_EARLY_ENABLED(log_level)) {								\
 		uint32_t mSec = esp_log_early_timestamp() ;							\
-    	esp_rom_printf(_ESP_LOG_DRAM_LOG_FORMAT(log_tag_letter, format), mSec/1000, mSec%1000, tag __VA_OPT__(,) __VA_ARGS__);	\
+    	esp_rom_printf(_ESP_LOG_DRAM_LOG_FORMAT(format), mSec/1000, mSec%1000, tag __VA_OPT__(,) __VA_ARGS__);	\
 	}} while(0)
 #else // !(defined(__cplusplus) && (__cplusplus >  201703L))
 #define ESP_DRAM_LOG_IMPL(tag, format, log_level, log_tag_letter, ...) do {	\
