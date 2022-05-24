@@ -3,16 +3,11 @@
  * redirects log output to syslog functionality
  */
 
+#include	<string.h>
+
 #include	"esp_attr.h"
 #include	"xtensa/hal.h"
 #include	"soc/soc.h"
-#include	<stdbool.h>
-#include	<stdarg.h>
-#include	<string.h>
-#include	<stdlib.h>
-#include	<stdio.h>
-#include	<assert.h>
-#include	<ctype.h>
 
 #include	"esp_log.h"
 #include	"sys/queue.h"
