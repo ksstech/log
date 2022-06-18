@@ -4,12 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include "../log/include/esp_log.h"
-#include "soc/soc_memory_types.h"  // for esp_ptr_byte_accessible
-
+#include "esp_log.h"
+#include "esp_memory_utils.h"
 
 //print number of bytes per line for esp_log_buffer_char and esp_log_buffer_hex
 #define BYTES_PER_LINE 16
