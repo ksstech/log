@@ -1,26 +1,23 @@
 /*
- * log.c - replacement for esp-idf module of same name.
- * redirects log output to syslog functionality
+ * log.c - replacement for esp-idf module, redirects log output to syslog functionality
+ * Copyright (c) 2017-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
-#include	<string.h>
+#include <string.h>
 
-#include	"esp_attr.h"
-#include	"xtensa/hal.h"
-#include	"soc/soc.h"
+#include "esp_attr.h"
+#include "xtensa/hal.h"
+#include "soc/soc.h"
 
-#include	"esp_log.h"
-#include	"sys/queue.h"
-#include	"soc/soc_memory_layout.h"
+#include "esp_log.h"
+#include "sys/queue.h"
+#include "soc/soc_memory_layout.h"
 
-#include	"hal_config.h"
-#include	"printfx.h"
-#include	"x_string_general.h"
+#include "hal_config.h"
+#include "printfx.h"
+#include "x_string_general.h"
 
 #define	debugFLAG					(0xF000)
-
-#define	debugFORMAT					(debugFLAG & 0x0001)
-#define	debugSKIP					(debugFLAG & 0x0001)
 
 #define	debugTIMING					(debugFLAG_GLOBAL & debugFLAG & 0x1000)
 #define	debugTRACK					(debugFLAG_GLOBAL & debugFLAG & 0x2000)
