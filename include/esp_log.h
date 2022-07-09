@@ -480,6 +480,19 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 #endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
 /** @endcond */
 
+// Using ROM based esp_rom_printf
+extern unsigned long long RunTime;
+#define	_L_(f)						" [%s:%d] " f "", __FUNCTION__, __LINE__
+#define	_T_(f)						" [%!.R] " f "", RunTime
+#define	_TL_(f)						" [%!.R:%s:%d] " f "", RunTime, __FUNCTION__, __LINE__
+#define	RP(f, ...)					esp_rom_printf(f, ##__VA_ARGS__)
+#define	RPL(f, ...)					esp_rom_printf(_L_(f), ##__VA_ARGS__)
+#define	RPT(f, ...)					esp_rom_printf(_RT_(f), ##__VA_ARGS__)
+
+#define	IF_RP(T, f, ...)			if (T) RP(f, ##__VA_ARGS__)
+#define	IF_RPL(T, f, ...)			if (T) RPL(f, ##__VA_ARGS__)
+#define	IF_RPT(T, f, ...)			if (T) RPT(f, ##__VA_ARGS__)
+
 #ifdef __cplusplus
 }
 #endif
