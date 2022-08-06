@@ -8,8 +8,10 @@
 
 #include <stdint.h>
 #include <stdarg.h>
+#include <inttypes.h>
 #include "sdkconfig.h"
 #include "esp_rom_sys.h"
+
 #include "hal/cpu_hal.h"		// AMM
 #if CONFIG_IDF_TARGET_ESP32
 #include "esp32/rom/ets_sys.h" // will be removed in idf v5.0
@@ -143,7 +145,7 @@ uint32_t esp_log_early_timestamp(void);
  *
  * This function or these macros should not be used from an interrupt.
  */
-void esp_log_write(esp_log_level_t level, const char* tag, const char* format, ...) __attribute__ ((format (printf, 3, 4)));
+void esp_log_write(esp_log_level_t level, const char* tag, const char* format, ...);
 
 /**
  * @brief Write message into the log, va_list variant
@@ -339,7 +341,7 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 
 #define ESP_LOG_EARLY_IMPL(tag, format, level, log_tag_letter, ...) do {							\
 		if (_ESP_LOG_EARLY_ENABLED(level)) { uint32_t mS = esp_log_timestamp();						\
-			esp_rom_printf("%d.%03d: #%d boot %s ", mS/1000, mS%1000, cpu_hal_get_core_id(), tag);	\
+			esp_rom_printf("%d.%03d: #%d boot %s ", mS/1000, mS%1000, esp_cpu_get_core_id(), tag);	\
 			esp_rom_printf("" format "\n", ##__VA_ARGS__);											\
 		}} while(0)
 
@@ -480,18 +482,25 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 #endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
 /** @endcond */
 
-// Using ROM based esp_rom_printf
+// ################################ Using ROM based esp_rom_printf #################################
+
+#if 0
 extern unsigned long long RunTime;
-#define	_L_(f)						" [%s:%d] " f "", __FUNCTION__, __LINE__
-#define	_T_(f)						" [%!.R] " f "", RunTime
-#define	_TL_(f)						" [%!.R:%s:%d] " f "", RunTime, __FUNCTION__, __LINE__
+
+#define	_RL_(f)						" [%s:%d] " f "", __FUNCTION__, __LINE__
+#define	_RT_(f)						" [%d.%03d] " f "", RunTime / MILLION, (Runtime % MILLION) / THOUSAND
+#define	_RTL_(f)					" [%d.%03d %s:%d] " f "", RunTime / MILLION, (Runtime % MILLION) / THOUSAND, __FUNCTION__, __LINE__
+
 #define	RP(f, ...)					esp_rom_printf(f, ##__VA_ARGS__)
-#define	RPL(f, ...)					esp_rom_printf(_L_(f), ##__VA_ARGS__)
+#define	RPL(f, ...)					esp_rom_printf(_RL_(f), ##__VA_ARGS__)
 #define	RPT(f, ...)					esp_rom_printf(_RT_(f), ##__VA_ARGS__)
+#define	RPTL(f, ...)				esp_rom_printf(_RTL_(f), ##__VA_ARGS__)
 
 #define	IF_RP(T, f, ...)			if (T) RP(f, ##__VA_ARGS__)
 #define	IF_RPL(T, f, ...)			if (T) RPL(f, ##__VA_ARGS__)
 #define	IF_RPT(T, f, ...)			if (T) RPT(f, ##__VA_ARGS__)
+#define	IF_RPTL(T, f, ...)			if (T) RPTL(f, ##__VA_ARGS__)
+#endif
 
 #ifdef __cplusplus
 }
