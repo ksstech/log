@@ -14,7 +14,6 @@
 #include "soc/soc_memory_layout.h"
 
 #include "hal_config.h"
-#include "printfx.h"
 #include "x_string_general.h"
 
 #define	debugFLAG					(0xF000)

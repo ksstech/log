@@ -484,23 +484,21 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 
 // ################################ Using ROM based esp_rom_printf #################################
 
-#if 0
 extern unsigned long long RunTime;
 
-#define	_RL_(f)						" [%s:%d] " f "", __FUNCTION__, __LINE__
-#define	_RT_(f)						" [%d.%03d] " f "", RunTime / MILLION, (Runtime % MILLION) / THOUSAND
-#define	_RTL_(f)					" [%d.%03d %s:%d] " f "", RunTime / MILLION, (Runtime % MILLION) / THOUSAND, __FUNCTION__, __LINE__
+#define	_LL_(f)						" [%s:%d] " f "", __FUNCTION__, __LINE__
+#define	_LT_(f)						" [%d.%03d] " f "", RunTime / MILLION, (Runtime % MILLION) / THOUSAND
+#define	_LTL_(f)					" [%d.%03d %s:%d] " f "", RunTime / MILLION, (Runtime % MILLION) / THOUSAND, __FUNCTION__, __LINE__
 
-#define	RP(f, ...)					esp_rom_printf(f, ##__VA_ARGS__)
-#define	RPL(f, ...)					esp_rom_printf(_RL_(f), ##__VA_ARGS__)
-#define	RPT(f, ...)					esp_rom_printf(_RT_(f), ##__VA_ARGS__)
-#define	RPTL(f, ...)				esp_rom_printf(_RTL_(f), ##__VA_ARGS__)
+#define	LP(f, ...)					esp_rom_printf(f, ##__VA_ARGS__)
+#define	LPL(f, ...)					esp_rom_printf(_LL_(f), ##__VA_ARGS__)
+#define	LPT(f, ...)					esp_rom_printf(_LT_(f), ##__VA_ARGS__)
+#define	LPTL(f, ...)				esp_rom_printf(_LTL_(f), ##__VA_ARGS__)
 
-#define	IF_RP(T, f, ...)			if (T) RP(f, ##__VA_ARGS__)
-#define	IF_RPL(T, f, ...)			if (T) RPL(f, ##__VA_ARGS__)
-#define	IF_RPT(T, f, ...)			if (T) RPT(f, ##__VA_ARGS__)
-#define	IF_RPTL(T, f, ...)			if (T) RPTL(f, ##__VA_ARGS__)
-#endif
+#define	IF_LP(T, f, ...)			if (T) LP(f, ##__VA_ARGS__)
+#define	IF_LPL(T, f, ...)			if (T) LPL(f, ##__VA_ARGS__)
+#define	IF_LPT(T, f, ...)			if (T) LPT(f, ##__VA_ARGS__)
+#define	IF_LPTL(T, f, ...)			if (T) LPTL(f, ##__VA_ARGS__)
 
 #ifdef __cplusplus
 }
