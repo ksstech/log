@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "esp_attr.h"
-#include "xtensa/hal.h"
+#include <xtensa/hal.h>
 #include "soc/soc.h"
 
 #include "esp_log.h"
