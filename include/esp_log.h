@@ -12,7 +12,7 @@
 #include "sdkconfig.h"
 #include "esp_rom_sys.h"
 
-#include "hal/cpu_hal.h"
+#include "esp_cpu.h"
 #if CONFIG_IDF_TARGET_ESP32
 #include "esp32/rom/ets_sys.h" // will be removed in idf v5.0
 #elif CONFIG_IDF_TARGET_ESP32S2
@@ -485,7 +485,7 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 #define ESP_COREDUMP_LOG( level, format, ... )  if (LOG_LOCAL_LEVEL >= level) { \
 		uint32_t mS = esp_log_early_timestamp();								\
 		esp_rom_printf(DRAM_STR("%d.%03d: #%d boot crdp - "), 					\
-		mS/1000, mS%1000, cpu_hal_get_core_id());								\
+		mS/1000, mS%1000, esp_cpu_get_core_id());								\
 		esp_rom_printf(DRAM_STR(format), ##__VA_ARGS__); }
 
 // ################################ Using ROM based esp_rom_printf #################################
