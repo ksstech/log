@@ -1,7 +1,5 @@
 /*
- *
  * esp_log.h
- *
  */
 
 #pragma once
