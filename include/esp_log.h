@@ -467,11 +467,22 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 /** @endcond */
 
 #if CONFIG_ESP_COREDUMP_LOGS
-#define ESP_COREDUMP_LOG( level, format, ... )  if (LOG_LOCAL_LEVEL >= level) { \
+	#ifdef ESP_COREDUMP_LOG
+		#undef ESP_COREDUMP_LOG
+	#endif
+
+	#define ESP_COREDUMP_LOG( level, format, ... )  if (LOG_LOCAL_LEVEL >= level) { \
 		uint32_t mS = esp_log_early_timestamp();								\
 		esp_rom_printf(DRAM_STR("%d.%03d: #%d boot crdp - "), 					\
 		mS/1000, mS%1000, esp_cpu_get_core_id());								\
-		esp_rom_printf(DRAM_STR(format), ##__VA_ARGS__); }
+		esp_rom_printf(DRAM_STR(format), ##__VA_ARGS__); 						\
+		esp_rom_printf(DRAM_STR("\r\n"));}
+
+#define ESP_COREDUMP_LOGE( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_ERROR, format, ##__VA_ARGS__)
+#define ESP_COREDUMP_LOGW( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_WARN, format, ##__VA_ARGS__)
+#define ESP_COREDUMP_LOGI( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_INFO, format, ##__VA_ARGS__)
+#define ESP_COREDUMP_LOGD( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_DEBUG, format, ##__VA_ARGS__)
+#define ESP_COREDUMP_LOGV( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_VERBOSE, format, ##__VA_ARGS__)
 #endif
 
 // ################################ Using ROM based esp_rom_printf #################################
