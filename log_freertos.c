@@ -10,7 +10,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
-#include "hal/cpu_hal.h" // for cpu_hal_get_cycle_count()
+#include "esp_cpu.h" // for cpu_hal_get_cycle_count()
 #include "esp_compiler.h"
 #include "esp_log.h"
 #include "esp_log_private.h"
@@ -117,6 +117,6 @@ uint32_t esp_log_early_timestamp(void)
     extern uint32_t g_ticks_per_us_pro;
     return esp_cpu_get_cycle_count() / (g_ticks_per_us_pro * 1000);
 #else
-    return esp_cpu_get_cycle_count() / (ets_get_cpu_frequency() * 1000);
+    return esp_cpu_get_cycle_count() / (esp_rom_get_cpu_ticks_per_us() * 1000);
 #endif
 }
