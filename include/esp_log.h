@@ -286,7 +286,6 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 	#define ESP_EARLY_LOGD( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_DEBUG,   D, ##__VA_ARGS__)
 	#define ESP_EARLY_LOGV( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_VERBOSE, V, ##__VA_ARGS__)
 #endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
-#else
 
 // ################################# Normal (BOOTLOADER+APP) logging ###############################
 
