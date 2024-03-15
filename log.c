@@ -1,6 +1,6 @@
 /*
  * log.c - replacement for esp-idf module, redirects log output to syslog functionality
- * Copyright (c) 2017-22 Andre M. Maree / KSS Technologies (Pty) Ltd.
+ * Copyright (c) 2017-24 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
 #include <string.h>
@@ -13,11 +13,12 @@
 #include "sys/queue.h"
 #include "soc/soc_memory_layout.h"
 
-#include "hal_config.h"
+#include "hal_platform.h"
 #include "x_string_general.h"
 
-#define	debugFLAG					(0xF000)
+// ########################################### Macros ##############################################
 
+#define	debugFLAG					(0xF000)
 #define	debugTIMING					(debugFLAG_GLOBAL & debugFLAG & 0x1000)
 #define	debugTRACK					(debugFLAG_GLOBAL & debugFLAG & 0x2000)
 #define	debugPARAM					(debugFLAG_GLOBAL & debugFLAG & 0x4000)
@@ -29,7 +30,7 @@ esp_log_level_t esp_log_default_level = CONFIG_LOG_DEFAULT_LEVEL;
 
 // ################################# forward function declarations #################################
 
-void xvSyslog(int Priority, const char * MsgID, const char * format, va_list args) ;
+void xvSyslog(int Priority, const char * MsgID, const char * format, va_list args);
 
 // #################################### publi/global functions #####################################
 
@@ -55,6 +56,7 @@ void IRAM_ATTR esp_log_writev(esp_log_level_t level, const char* tag, const char
 			return;
 		}
 	}
+	level += (level > 0) ? 2 : 0;
 	xvSyslog(level+2, tag, format, args);
 }
 

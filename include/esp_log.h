@@ -1,6 +1,4 @@
-/*
- * esp_log.h
- */
+// esp_log.h
 
 #pragma once
 
@@ -17,7 +15,6 @@ extern "C" {
 
 /**
  * @brief Log level
- *
  */
 typedef enum {
 	ESP_LOG_NONE,		/*!< No log output */
@@ -142,8 +139,6 @@ void esp_log_writev(esp_log_level_t level, const char* tag, const char* format, 
 
 void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 
-/** @cond */
-
 #include "esp_log_internal.h"
 
 #ifndef LOG_LOCAL_LEVEL
@@ -153,8 +148,6 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 #define LOG_LOCAL_LEVEL  CONFIG_BOOTLOADER_LOG_LEVEL
 #endif
 #endif
-
-/** @endcond */
 
 /**
  * @brief Log a buffer of hex bytes at specified level, separated into 16 bytes each line.
@@ -245,8 +238,6 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
         }																		\
     } while(0)
 
-/** @cond */
-
 //to be back compatible
 #define esp_log_buffer_hex		ESP_LOG_BUFFER_HEX
 #define esp_log_buffer_char		ESP_LOG_BUFFER_CHAR
@@ -316,11 +307,11 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 #endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
 
 #ifdef BOOTLOADER_BUILD
-#define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level))
+	#define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level))
 #else
-/* For early log, there is no log tag filtering. So we want to log only if both the LOG_LOCAL_LEVEL and the
-   currently configured min log level are higher than the log level */
-#define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level) && esp_log_default_level >= (log_level))
+	/* For early log, there is no log tag filtering. So we want to log only if both the LOG_LOCAL_LEVEL and the
+	   currently configured min log level are higher than the log level */
+	#define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level) && esp_log_default_level >= (log_level))
 #endif
 
 #define ESP_LOG_EARLY_IMPL(tag, format, level, log_tag_letter, ...) do {							\
@@ -376,6 +367,7 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 #define ESP_LOGV( tag, format, ... )  ESP_EARLY_LOGV(tag, format, ##__VA_ARGS__)
 #endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
 #endif  // BOOTLOADER_BUILD
+// ################################# Normal (BOOTLOADER+APP) logging ###############################
 
 /** runtime macro to output logs at a specified level.
  *
@@ -410,21 +402,15 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 		if (LOG_LOCAL_LEVEL >= level) ESP_LOG_LEVEL(level, tag, format, ## __VA_ARGS__);\
 	} while(0)
 
-/**
+/* ################################### DRAM logging support ########################################
  * @brief Macro to output logs when the cache is disabled. log at ``ESP_LOG_ERROR`` level.
- *
  * @note Unlike normal logging macros, it's possible to use this macro when interrupts are
  * disabled or inside an ISR.
- *
  * Similar to @see ``ESP_EARLY_LOGE``, the log level cannot be changed per-tag, however
  * esp_log_level_set("*", level) will set the default level which controls these log lines also.
- *
  * Usage: `ESP_DRAM_LOGE(DRAM_STR("my_tag"), "format", or `ESP_DRAM_LOGE(TAG, "format", ...)`,
  * where TAG is a char* that points to a str in the DRAM.
- *
  * @note Placing log strings in DRAM reduces available DRAM, so only use when absolutely essential.
- *
- * @see ``esp_rom_printf``,``ESP_LOGE``
  */
 #if defined(__cplusplus) && (__cplusplus >  201703L)
 #define ESP_DRAM_LOGE( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_ERROR,   E __VA_OPT__(,) __VA_ARGS__)
@@ -464,7 +450,8 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 		esp_rom_printf(_ESP_LOG_DRAM_LOG_FORMAT(log_tag_letter, format), mSec / 1000, mSec % 1000, tag, ##__VA_ARGS__);	\
 	}} while(0)
 #endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
-/** @endcond */
+
+// ################################# Coredump logging support ######################################
 
 #if CONFIG_ESP_COREDUMP_LOGS
 	#ifdef ESP_COREDUMP_LOG
