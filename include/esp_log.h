@@ -142,11 +142,11 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 #include "esp_log_internal.h"
 
 #ifndef LOG_LOCAL_LEVEL
-#ifndef BOOTLOADER_BUILD
-#define LOG_LOCAL_LEVEL  CONFIG_LOG_DEFAULT_LEVEL	// CONFIG_LOG_MAXIMUM_LEVEL
-#else
-#define LOG_LOCAL_LEVEL  CONFIG_BOOTLOADER_LOG_LEVEL
-#endif
+	#ifndef BOOTLOADER_BUILD
+		#define LOG_LOCAL_LEVEL  CONFIG_LOG_DEFAULT_LEVEL
+	#else
+		#define LOG_LOCAL_LEVEL  CONFIG_BOOTLOADER_LOG_LEVEL
+	#endif
 #endif
 
 /**
@@ -160,7 +160,7 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
  */
 #define ESP_LOG_BUFFER_HEX_LEVEL( tag, buffer, buff_len, level )			\
     do {																	\
-        if ( LOG_LOCAL_LEVEL >= (level) ) { 								\
+        if ((level) <= LOG_LOCAL_LEVEL) { 									\
             esp_log_buffer_hex_internal( tag, buffer, buff_len, level ); 	\
         } 																	\
     } while(0)
@@ -176,7 +176,7 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
  */
 #define ESP_LOG_BUFFER_CHAR_LEVEL( tag, buffer, buff_len, level )			\
     do {																	\
-        if ( LOG_LOCAL_LEVEL >= (level) ) {									\
+        if ((level) <= LOG_LOCAL_LEVEL) { 									\
             esp_log_buffer_char_internal( tag, buffer, buff_len, level );	\
         }																	\
     } while(0)
@@ -199,7 +199,7 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
  */
 #define ESP_LOG_BUFFER_HEXDUMP( tag, buffer, buff_len, level )				\
     do {																	\
-        if ( LOG_LOCAL_LEVEL >= (level) ) {									\
+        if ((level) <= LOG_LOCAL_LEVEL) { 									\
             esp_log_buffer_hexdump_internal( tag, buffer, buff_len, level);	\
         }																	\
     } while(0)
@@ -242,69 +242,19 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 #define esp_log_buffer_hex		ESP_LOG_BUFFER_HEX
 #define esp_log_buffer_char		ESP_LOG_BUFFER_CHAR
 
-
-#if CONFIG_LOG_COLORS
-#define LOG_COLOR_BLACK   "30"
-#define LOG_COLOR_RED     "31"
-#define LOG_COLOR_GREEN   "32"
-#define LOG_COLOR_BROWN   "33"
-#define LOG_COLOR_BLUE    "34"
-#define LOG_COLOR_PURPLE  "35"
-#define LOG_COLOR_CYAN    "36"
-#define LOG_COLOR(COLOR)  "\033[0;" COLOR "m"
-#define LOG_BOLD(COLOR)   "\033[1;" COLOR "m"
-#define LOG_RESET_COLOR   "\033[0m"
-#define LOG_COLOR_E       LOG_COLOR(LOG_COLOR_RED)
-#define LOG_COLOR_W       LOG_COLOR(LOG_COLOR_BROWN)
-#define LOG_COLOR_I       LOG_COLOR(LOG_COLOR_GREEN)
-#define LOG_COLOR_D
-#define LOG_COLOR_V
-#else //CONFIG_LOG_COLORS
-#define LOG_COLOR_E
-#define LOG_COLOR_W
-#define LOG_COLOR_I
-#define LOG_COLOR_D
-#define LOG_COLOR_V
-#define LOG_RESET_COLOR
-#endif //CONFIG_LOG_COLORS
-
-#define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%u) %s: " format LOG_RESET_COLOR "\r\n"
-//#define LOG_SYSTEM_TIME_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%s) %s: " format LOG_RESET_COLOR "\n"
-
-/** @endcond */
-
 /// macro to output logs in startup code, before heap allocator and syscalls have been initialized.
 // Log at ``ESP_LOG_ERROR`` level. @see ``printf``,``ESP_LOGE``,``ESP_DRAM_LOGE``
 #define portGET_ARGUMENT_COUNT_INNER(zero, one, count, ...) count
 
-/**
- * In the future, we want to switch to C++20. We also want to become compatible with clang.
- * Hence, we provide two versions of the following macros which are using variadic arguments.
- * The first one is using the GNU extension \#\#__VA_ARGS__. The second one is using the C++20 feature __VA_OPT__(,).
- * This allows users to compile their code with standard C++20 enabled instead of the GNU extension.
- * Below C++20, we haven't found any good alternative to using \#\#__VA_ARGS__.
- */
-#if defined(__cplusplus) && (__cplusplus >  201703L)
-#define ESP_EARLY_LOGE( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_ERROR,   E __VA_OPT__(,) __VA_ARGS__)
-/// macro to output logs in startup code at ``ESP_LOG_WARN`` level.  @see ``ESP_EARLY_LOGE``,``ESP_LOGE``, ``printf``
-#define ESP_EARLY_LOGW( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_WARN,    W __VA_OPT__(,) __VA_ARGS__)
-/// macro to output logs in startup code at ``ESP_LOG_INFO`` level.  @see ``ESP_EARLY_LOGE``,``ESP_LOGE``, ``printf``
-#define ESP_EARLY_LOGI( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_INFO,    I __VA_OPT__(,) __VA_ARGS__)
-/// macro to output logs in startup code at ``ESP_LOG_DEBUG`` level.  @see ``ESP_EARLY_LOGE``,``ESP_LOGE``, ``printf``
-#define ESP_EARLY_LOGD( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_DEBUG,   D __VA_OPT__(,) __VA_ARGS__)
-/// macro to output logs in startup code at ``ESP_LOG_VERBOSE`` level.  @see ``ESP_EARLY_LOGE``,``ESP_LOGE``, ``printf``
-#define ESP_EARLY_LOGV( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_VERBOSE, V __VA_OPT__(,) __VA_ARGS__)
-#else // !(defined(__cplusplus) && (__cplusplus >  201703L))
-#define ESP_EARLY_LOGE( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_ERROR,   E, ##__VA_ARGS__)
-/// macro to output logs in startup code at ``ESP_LOG_WARN`` level.  @see ``ESP_EARLY_LOGE``,``ESP_LOGE``, ``printf``
-#define ESP_EARLY_LOGW( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_WARN,    W, ##__VA_ARGS__)
-/// macro to output logs in startup code at ``ESP_LOG_INFO`` level.  @see ``ESP_EARLY_LOGE``,``ESP_LOGE``, ``printf``
-#define ESP_EARLY_LOGI( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_INFO,    I, ##__VA_ARGS__)
-/// macro to output logs in startup code at ``ESP_LOG_DEBUG`` level.  @see ``ESP_EARLY_LOGE``,``ESP_LOGE``, ``printf``
-#define ESP_EARLY_LOGD( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_DEBUG,   D, ##__VA_ARGS__)
-/// macro to output logs in startup code at ``ESP_LOG_VERBOSE`` level.  @see ``ESP_EARLY_LOGE``,``ESP_LOGE``, ``printf``
-#define ESP_EARLY_LOGV( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_VERBOSE, V, ##__VA_ARGS__)
-#endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
+// ######################## Common macros for BOOTLOADER+APP and DRAM logging ######################
+
+#define ESP_LOG_LEVEL(level, tag, format, ...) do {			\
+		esp_log_write(level, tag, format, ##__VA_ARGS__);	\
+	} while(0)
+
+#define ESP_LOG_LEVEL_LOCAL(level, tag, format, ... ) do { 									\
+		if (level <= LOG_LOCAL_LEVEL) { ESP_LOG_LEVEL(level, tag, format, ## __VA_ARGS__); }\
+	} while(0)
 
 #ifdef BOOTLOADER_BUILD
 	#define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level))
@@ -314,93 +264,72 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 	#define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level) && esp_log_default_level >= (log_level))
 #endif
 
-#define ESP_LOG_EARLY_IMPL(tag, format, level, log_tag_letter, ...) do {							\
-		if (_ESP_LOG_EARLY_ENABLED(level)) { uint32_t mS = esp_log_timestamp();						\
-			esp_rom_printf("%d.%03d: #%d boot %s ", mS/1000, mS%1000, esp_cpu_get_core_id(), tag);	\
-			esp_rom_printf("" format "\n", ##__VA_ARGS__);											\
-		}} while(0)
+#define LOG_EARLY_FORMAT_STRING		"%d.%03d (%d) %d boot %s "
+#define ESP_LOG_EARLY_IMPL(tag, format, level, log_tag_letter, ...) do {									\
+		if (_ESP_LOG_EARLY_ENABLED(level)) { 																\
+			uint32_t mS = esp_log_timestamp();																\
+			esp_rom_printf(LOG_EARLY_FORMAT_STRING, mS/1000, mS%1000, level, esp_cpu_get_core_id(), tag);	\
+			esp_rom_printf("" format "\n", ##__VA_ARGS__);													\
+		}																									\
+	} while(0)
 
-#ifndef BOOTLOADER_BUILD
 #if defined(__cplusplus) && (__cplusplus >  201703L)
-#define ESP_LOGE( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_ERROR,   tag, format __VA_OPT__(,) __VA_ARGS__)
-#define ESP_LOGW( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_WARN,    tag, format __VA_OPT__(,) __VA_ARGS__)
-#define ESP_LOGI( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO,    tag, format __VA_OPT__(,) __VA_ARGS__)
-#define ESP_LOGD( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_DEBUG,   tag, format __VA_OPT__(,) __VA_ARGS__)
-#define ESP_LOGV( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_VERBOSE, tag, format __VA_OPT__(,) __VA_ARGS__)
+	#define ESP_EARLY_LOGE( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_ERROR,   E __VA_OPT__(,) __VA_ARGS__)
+	#define ESP_EARLY_LOGW( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_WARN,    W __VA_OPT__(,) __VA_ARGS__)
+	#define ESP_EARLY_LOGI( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_INFO,    I __VA_OPT__(,) __VA_ARGS__)
+	#define ESP_EARLY_LOGD( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_DEBUG,   D __VA_OPT__(,) __VA_ARGS__)
+	#define ESP_EARLY_LOGV( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_VERBOSE, V __VA_OPT__(,) __VA_ARGS__)
 #else // !(defined(__cplusplus) && (__cplusplus >  201703L))
-#define ESP_LOGE( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_ERROR,   tag, format, ##__VA_ARGS__)
-#define ESP_LOGW( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_WARN,    tag, format, ##__VA_ARGS__)
-#define ESP_LOGI( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO,    tag, format, ##__VA_ARGS__)
-#define ESP_LOGD( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_DEBUG,   tag, format, ##__VA_ARGS__)
-#define ESP_LOGV( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_VERBOSE, tag, format, ##__VA_ARGS__)
+	#define ESP_EARLY_LOGE( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_ERROR,   E, ##__VA_ARGS__)
+	#define ESP_EARLY_LOGW( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_WARN,    W, ##__VA_ARGS__)
+	#define ESP_EARLY_LOGI( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_INFO,    I, ##__VA_ARGS__)
+	#define ESP_EARLY_LOGD( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_DEBUG,   D, ##__VA_ARGS__)
+	#define ESP_EARLY_LOGV( tag, format, ... ) ESP_LOG_EARLY_IMPL(tag, format, ESP_LOG_VERBOSE, V, ##__VA_ARGS__)
 #endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
 #else
 
-/**
- * Macro to output logs at ESP_LOG_ERROR level.
- *
- * @note This macro cannot be used when interrupts are disabled or inside an ISR. @see ``ESP_DRAM_LOGE``.
- *
- * @param tag tag of the log, which can be used to change the log level by ``esp_log_level_set`` at runtime.
- *
- * @see ``printf``
- */
-#if defined(__cplusplus) && (__cplusplus >  201703L)
-#define ESP_LOGE( tag, format, ... )  ESP_EARLY_LOGE(tag, format __VA_OPT__(,) __VA_ARGS__)
-/// macro to output logs at ``ESP_LOG_WARN`` level.  @see ``ESP_LOGE``
-#define ESP_LOGW( tag, format, ... )  ESP_EARLY_LOGW(tag, format __VA_OPT__(,) __VA_ARGS__)
-/// macro to output logs at ``ESP_LOG_INFO`` level.  @see ``ESP_LOGE``
-#define ESP_LOGI( tag, format, ... )  ESP_EARLY_LOGI(tag, format __VA_OPT__(,) __VA_ARGS__)
-/// macro to output logs at ``ESP_LOG_DEBUG`` level.  @see ``ESP_LOGE``
-#define ESP_LOGD( tag, format, ... )  ESP_EARLY_LOGD(tag, format __VA_OPT__(,) __VA_ARGS__)
-/// macro to output logs at ``ESP_LOG_VERBOSE`` level.  @see ``ESP_LOGE``
-#define ESP_LOGV( tag, format, ... )  ESP_EARLY_LOGV(tag, format __VA_OPT__(,) __VA_ARGS__)
-#else // !(defined(__cplusplus) && (__cplusplus >  201703L))
-#define ESP_LOGE( tag, format, ... )  ESP_EARLY_LOGE(tag, format, ##__VA_ARGS__)
-/// macro to output logs at ``ESP_LOG_WARN`` level.  @see ``ESP_LOGE``
-#define ESP_LOGW( tag, format, ... )  ESP_EARLY_LOGW(tag, format, ##__VA_ARGS__)
-/// macro to output logs at ``ESP_LOG_INFO`` level.  @see ``ESP_LOGE``
-#define ESP_LOGI( tag, format, ... )  ESP_EARLY_LOGI(tag, format, ##__VA_ARGS__)
-/// macro to output logs at ``ESP_LOG_DEBUG`` level.  @see ``ESP_LOGE``
-#define ESP_LOGD( tag, format, ... )  ESP_EARLY_LOGD(tag, format, ##__VA_ARGS__)
-/// macro to output logs at ``ESP_LOG_VERBOSE`` level.  @see ``ESP_LOGE``
-#define ESP_LOGV( tag, format, ... )  ESP_EARLY_LOGV(tag, format, ##__VA_ARGS__)
-#endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
-#endif  // BOOTLOADER_BUILD
 // ################################# Normal (BOOTLOADER+APP) logging ###############################
 
-/** runtime macro to output logs at a specified level.
- *
- * @param tag tag of the log, which can be used to change the log level by ``esp_log_level_set`` at runtime.
- * @param level level of the output log.
- * @param format format of the output log. see ``printf``
- * @param ... variables to be replaced into the log. see ``printf``
- *
- * @see ``printf``
- */
-/* ONLY support a single time format, do not build hard-coded format strings (EWIDV)
- * Simplify the macro definitions to a single macro (for now till C++ 2017 support) */
-#if defined(__cplusplus) && (__cplusplus >  201703L)
-
-#define ESP_LOG_LEVEL(level,tag,format,...) do {		\
-		esp_log_write(level, tag, format, ##__VA_ARGS__);	\
-	} while(0)
-
-#else // !(defined(__cplusplus) && (__cplusplus >  201703L))
-
-#define ESP_LOG_LEVEL(level,tag,format,...) do {			\
-			esp_log_write(level,tag,format,##__VA_ARGS__);	\
-		} while(0)
-
-#endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
-
-/** runtime macro to output logs at a specified level. Also check the level with ``LOG_LOCAL_LEVEL``.
- *
- * @see ``printf``, ``ESP_LOG_LEVEL``
- */
-#define ESP_LOG_LEVEL_LOCAL( level, tag, format, ... ) do { 							\
-		if (LOG_LOCAL_LEVEL >= level) ESP_LOG_LEVEL(level, tag, format, ## __VA_ARGS__);\
-	} while(0)
+#ifndef BOOTLOADER_BUILD
+	#if defined(__cplusplus) && (__cplusplus >  201703L)
+		#define ESP_LOGE( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_ERROR,   tag, format __VA_OPT__(,) __VA_ARGS__)
+		#define ESP_LOGW( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_WARN,    tag, format __VA_OPT__(,) __VA_ARGS__)
+		#define ESP_LOGI( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO,    tag, format __VA_OPT__(,) __VA_ARGS__)
+		#define ESP_LOGD( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_DEBUG,   tag, format __VA_OPT__(,) __VA_ARGS__)
+		#define ESP_LOGV( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_VERBOSE, tag, format __VA_OPT__(,) __VA_ARGS__)
+	#else // !(defined(__cplusplus) && (__cplusplus >  201703L))
+		#define ESP_LOGE( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_ERROR,   tag, format, ##__VA_ARGS__)
+		#define ESP_LOGW( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_WARN,    tag, format, ##__VA_ARGS__)
+		#define ESP_LOGI( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_INFO,    tag, format, ##__VA_ARGS__)
+		#define ESP_LOGD( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_DEBUG,   tag, format, ##__VA_ARGS__)
+		#define ESP_LOGV( tag, format, ... ) ESP_LOG_LEVEL_LOCAL(ESP_LOG_VERBOSE, tag, format, ##__VA_ARGS__)
+	#endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
+#else
+	/**
+	 * In the future, we want to switch to C++20. We also want to become compatible with clang.
+	 * Hence, we provide two versions of the following macros which are using variadic arguments.
+	 * The first one is using the GNU extension \#\#__VA_ARGS__. The second one is using the C++20 feature __VA_OPT__(,).
+	 * This allows users to compile their code with standard C++20 enabled instead of the GNU extension.
+	 * Below C++20, we haven't found any good alternative to using \#\#__VA_ARGS__.
+	 *
+	 * Macro to output logs at ESP_LOG_ERROR level.
+	 * @note This macro cannot be used when interrupts are disabled or inside an ISR. @see ``ESP_DRAM_LOGE``.
+	 * @param tag tag of the log, which can be used to change the log level by ``esp_log_level_set`` at runtime.
+	 */
+	#if defined(__cplusplus) && (__cplusplus >  201703L)
+		#define ESP_LOGE( tag, format, ... )  ESP_EARLY_LOGE(tag, format __VA_OPT__(,) __VA_ARGS__)
+		#define ESP_LOGW( tag, format, ... )  ESP_EARLY_LOGW(tag, format __VA_OPT__(,) __VA_ARGS__)
+		#define ESP_LOGI( tag, format, ... )  ESP_EARLY_LOGI(tag, format __VA_OPT__(,) __VA_ARGS__)
+		#define ESP_LOGD( tag, format, ... )  ESP_EARLY_LOGD(tag, format __VA_OPT__(,) __VA_ARGS__)
+		#define ESP_LOGV( tag, format, ... )  ESP_EARLY_LOGV(tag, format __VA_OPT__(,) __VA_ARGS__)
+	#else // !(defined(__cplusplus) && (__cplusplus >  201703L))
+		#define ESP_LOGE( tag, format, ... )  ESP_EARLY_LOGE(tag, format, ##__VA_ARGS__)
+		#define ESP_LOGW( tag, format, ... )  ESP_EARLY_LOGW(tag, format, ##__VA_ARGS__)
+		#define ESP_LOGI( tag, format, ... )  ESP_EARLY_LOGI(tag, format, ##__VA_ARGS__)
+		#define ESP_LOGD( tag, format, ... )  ESP_EARLY_LOGD(tag, format, ##__VA_ARGS__)
+		#define ESP_LOGV( tag, format, ... )  ESP_EARLY_LOGV(tag, format, ##__VA_ARGS__)
+	#endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
+#endif  // BOOTLOADER_BUILD
 
 /* ################################### DRAM logging support ########################################
  * @brief Macro to output logs when the cache is disabled. log at ``ESP_LOG_ERROR`` level.
@@ -412,43 +341,35 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
  * where TAG is a char* that points to a str in the DRAM.
  * @note Placing log strings in DRAM reduces available DRAM, so only use when absolutely essential.
  */
-#if defined(__cplusplus) && (__cplusplus >  201703L)
-#define ESP_DRAM_LOGE( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_ERROR,   E __VA_OPT__(,) __VA_ARGS__)
-/// macro to output logs when the cache is disabled at ``ESP_LOG_WARN`` level.  @see ``ESP_DRAM_LOGW``,``ESP_LOGW``, ``esp_rom_printf``
-#define ESP_DRAM_LOGW( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_WARN,    W __VA_OPT__(,) __VA_ARGS__)
-/// macro to output logs when the cache is disabled at ``ESP_LOG_INFO`` level.  @see ``ESP_DRAM_LOGI``,``ESP_LOGI``, ``esp_rom_printf``
-#define ESP_DRAM_LOGI( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_INFO,    I __VA_OPT__(,) __VA_ARGS__)
-/// macro to output logs when the cache is disabled at ``ESP_LOG_DEBUG`` level.  @see ``ESP_DRAM_LOGD``,``ESP_LOGD``, ``esp_rom_printf``
-#define ESP_DRAM_LOGD( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_DEBUG,   D __VA_OPT__(,) __VA_ARGS__)
-/// macro to output logs when the cache is disabled at ``ESP_LOG_VERBOSE`` level.  @see ``ESP_DRAM_LOGV``,``ESP_LOGV``, ``esp_rom_printf``
-#define ESP_DRAM_LOGV( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_VERBOSE, V __VA_OPT__(,) __VA_ARGS__)
-#else // !(defined(__cplusplus) && (__cplusplus >  201703L))
-#define ESP_DRAM_LOGE( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_ERROR,   E, ##__VA_ARGS__)
-/// macro to output logs when the cache is disabled at ``ESP_LOG_WARN`` level.  @see ``ESP_DRAM_LOGW``,``ESP_LOGW``, ``esp_rom_printf``
-#define ESP_DRAM_LOGW( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_WARN,    W, ##__VA_ARGS__)
-/// macro to output logs when the cache is disabled at ``ESP_LOG_INFO`` level.  @see ``ESP_DRAM_LOGI``,``ESP_LOGI``, ``esp_rom_printf``
-#define ESP_DRAM_LOGI( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_INFO,    I, ##__VA_ARGS__)
-/// macro to output logs when the cache is disabled at ``ESP_LOG_DEBUG`` level.  @see ``ESP_DRAM_LOGD``,``ESP_LOGD``, ``esp_rom_printf``
-#define ESP_DRAM_LOGD( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_DEBUG,   D, ##__VA_ARGS__)
-/// macro to output logs when the cache is disabled at ``ESP_LOG_VERBOSE`` level.  @see ``ESP_DRAM_LOGV``,``ESP_LOGV``, ``esp_rom_printf``
-#define ESP_DRAM_LOGV( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_VERBOSE, V, ##__VA_ARGS__)
-#endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
-
-/** @cond */
-#define _ESP_LOG_DRAM_LOG_FORMAT(tag, format)  DRAM_STR("%d.%03d: %s " format "\n")
 
 #if defined(__cplusplus) && (__cplusplus >  201703L)
-#define ESP_DRAM_LOG_IMPL(tag, format, log_level, log_tag_letter, ...) do {	\
-	if (_ESP_LOG_EARLY_ENABLED(log_level)) {								\
-		uint32_t mSec = esp_log_early_timestamp() ;							\
-    	esp_rom_printf(_ESP_LOG_DRAM_LOG_FORMAT(format), mSec/1000, mSec%1000, tag __VA_OPT__(,) __VA_ARGS__);	\
-	}} while(0)
+	#define DRAM_LOG_FORMAT  DRAM_STR("%d.%03d (%d) ")
+	#define ESP_DRAM_LOG_IMPL(tag, format, level, log_tag_letter, ...) do {				\
+		if (_ESP_LOG_EARLY_ENABLED(level)) {											\
+			uint32_t mS = esp_log_early_timestamp();									\
+    		esp_rom_printf(DRAM_LOG_FORMAT, mS/1000, mS%1000, level);					\
+			esp_rom_printf(DRAM_STR("%s " format "\n"), tag __VA_OPT__(,) __VA_ARGS__)	\
+		}																				\
+	} while(0)
+	#define ESP_DRAM_LOGE( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_ERROR,   E __VA_OPT__(,) __VA_ARGS__)
+	#define ESP_DRAM_LOGW( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_WARN,    W __VA_OPT__(,) __VA_ARGS__)
+	#define ESP_DRAM_LOGI( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_INFO,    I __VA_OPT__(,) __VA_ARGS__)
+	#define ESP_DRAM_LOGD( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_DEBUG,   D __VA_OPT__(,) __VA_ARGS__)
+	#define ESP_DRAM_LOGV( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_VERBOSE, V __VA_OPT__(,) __VA_ARGS__)
 #else // !(defined(__cplusplus) && (__cplusplus >  201703L))
-#define ESP_DRAM_LOG_IMPL(tag, format, log_level, log_tag_letter, ...) do {	\
-	if (_ESP_LOG_EARLY_ENABLED(log_level)) {								\
-		uint32_t mSec = esp_log_early_timestamp() ;							\
-		esp_rom_printf(_ESP_LOG_DRAM_LOG_FORMAT(log_tag_letter, format), mSec / 1000, mSec % 1000, tag, ##__VA_ARGS__);	\
-	}} while(0)
+	#define DRAM_LOG_FORMAT  DRAM_STR("%d.%03d (%d) %s ")
+	#define ESP_DRAM_LOG_IMPL(tag, format, level, log_tag_letter, ...) do {				\
+		if (_ESP_LOG_EARLY_ENABLED(level)) {											\
+			uint32_t mS = esp_log_early_timestamp();									\
+    		esp_rom_printf(DRAM_LOG_FORMAT, mS/1000, mS%1000, level, tag);				\
+			esp_rom_printf(DRAM_STR("" format "\n"), ##__VA_ARGS__);					\
+		}																				\
+	} while(0)
+	#define ESP_DRAM_LOGE( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_ERROR,   E, ##__VA_ARGS__)
+	#define ESP_DRAM_LOGW( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_WARN,    W, ##__VA_ARGS__)
+	#define ESP_DRAM_LOGI( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_INFO,    I, ##__VA_ARGS__)
+	#define ESP_DRAM_LOGD( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_DEBUG,   D, ##__VA_ARGS__)
+	#define ESP_DRAM_LOGV( tag, format, ... ) ESP_DRAM_LOG_IMPL(tag, format, ESP_LOG_VERBOSE, V, ##__VA_ARGS__)
 #endif // !(defined(__cplusplus) && (__cplusplus >  201703L))
 
 // ################################# Coredump logging support ######################################
@@ -458,18 +379,19 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 		#undef ESP_COREDUMP_LOG
 	#endif
 
-	#define ESP_COREDUMP_LOG( level, format, ... )  if (LOG_LOCAL_LEVEL >= level) { \
-		uint32_t mS = esp_log_early_timestamp();								\
-		esp_rom_printf(DRAM_STR("%d.%03d: #%d boot crdp - "), 					\
-		mS/1000, mS%1000, esp_cpu_get_core_id());								\
-		esp_rom_printf(DRAM_STR(format), ##__VA_ARGS__); 						\
-		esp_rom_printf(DRAM_STR("\r\n"));}
+	#define DRAM_FORMAT_STRING		DRAM_STR("%d.%03d (%d) %d boot crdp ")
+	#define ESP_COREDUMP_LOG(level, format, ... )												\
+		if (LOG_LOCAL_LEVEL >= level) { 														\
+			uint32_t mS = esp_log_early_timestamp();											\
+			esp_rom_printf(DRAM_FORMAT_STRING, mS/1000, mS%1000, level, esp_cpu_get_core_id());	\
+			esp_rom_printf(DRAM_STR("" format "\n"), ##__VA_ARGS__);								\
+		}
 
-#define ESP_COREDUMP_LOGE( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_ERROR, format, ##__VA_ARGS__)
-#define ESP_COREDUMP_LOGW( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_WARN, format, ##__VA_ARGS__)
-#define ESP_COREDUMP_LOGI( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_INFO, format, ##__VA_ARGS__)
-#define ESP_COREDUMP_LOGD( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_DEBUG, format, ##__VA_ARGS__)
-#define ESP_COREDUMP_LOGV( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_VERBOSE, format, ##__VA_ARGS__)
+	#define ESP_COREDUMP_LOGE( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_ERROR, format, ##__VA_ARGS__)
+	#define ESP_COREDUMP_LOGW( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_WARN, format, ##__VA_ARGS__)
+	#define ESP_COREDUMP_LOGI( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_INFO, format, ##__VA_ARGS__)
+	#define ESP_COREDUMP_LOGD( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_DEBUG, format, ##__VA_ARGS__)
+	#define ESP_COREDUMP_LOGV( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_VERBOSE, format, ##__VA_ARGS__)
 #endif
 
 // ################################ Using ROM based esp_rom_printf #################################
