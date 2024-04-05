@@ -57,7 +57,7 @@ void IRAM_ATTR esp_log_writev(esp_log_level_t level, const char* tag, const char
 		}
 	}
 	level += (level > 0) ? 2 : 0;
-	xvSyslog(level+2, tag, format, args);
+	xvSyslog(level, tag, format, args);
 }
 
 void IRAM_ATTR esp_log_write(esp_log_level_t level, const char* tag, const char* format, ...) {
