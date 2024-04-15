@@ -373,25 +373,52 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 
 // ################################# Coredump logging support ######################################
 
-#if CONFIG_ESP_COREDUMP_LOGS
-	#ifdef ESP_COREDUMP_LOG
-		#undef ESP_COREDUMP_LOG
-	#endif
+#ifdef ESP_COREDUMP_LOG
+	#undef ESP_COREDUMP_LOG
+	#undef ESP_COREDUMP_LOGE
+	#undef ESP_COREDUMP_LOGW
+	#undef ESP_COREDUMP_LOGI
+	#undef ESP_COREDUMP_LOGD
+	#undef ESP_COREDUMP_LOGV
+#endif
 
+#if CONFIG_ESP_COREDUMP_LOGS
 	#define DRAM_FORMAT_STRING		DRAM_STR("%d.%03d (%d) %d boot crdp ")
 	#define ESP_COREDUMP_LOG(level, format, ... )												\
 		if (LOG_LOCAL_LEVEL >= level) { 														\
 			uint32_t mS = esp_log_early_timestamp();											\
 			esp_rom_printf(DRAM_FORMAT_STRING, mS/1000, mS%1000, level, esp_cpu_get_core_id());	\
-			esp_rom_printf(DRAM_STR("" format "\n"), ##__VA_ARGS__);								\
+			esp_rom_printf(DRAM_STR("" format "\n"), ##__VA_ARGS__);							\
 		}
+#else
+	#define ESP_COREDUMP_LOG(level, format, ... )
+#endif
+
+#define ESP_COREDUMP_LOGE( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_ERROR, format, ##__VA_ARGS__)
+#define ESP_COREDUMP_LOGW( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_WARN, format, ##__VA_ARGS__)
+#define ESP_COREDUMP_LOGI( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_INFO, format, ##__VA_ARGS__)
+#define ESP_COREDUMP_LOGD( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_DEBUG, format, ##__VA_ARGS__)
+#define ESP_COREDUMP_LOGV( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_VERBOSE, format, ##__VA_ARGS__)
+
+/* #ifndef ESP_COREDUMP_LOG
+	#if CONFIG_ESP_COREDUMP_LOGS
+		#define DRAM_FORMAT_STRING		DRAM_STR("%d.%03d (%d) %d boot crdp ")
+		#define ESP_COREDUMP_LOG(level, format, ... )												\
+			if (LOG_LOCAL_LEVEL >= level) { 														\
+				uint32_t mS = esp_log_early_timestamp();											\
+				esp_rom_printf(DRAM_FORMAT_STRING, mS/1000, mS%1000, level, esp_cpu_get_core_id());	\
+				esp_rom_printf(DRAM_STR("" format "\n"), ##__VA_ARGS__);							\
+			}
+	#else
+		#define ESP_COREDUMP_LOG(level, format, ... )
+	#endif
 
 	#define ESP_COREDUMP_LOGE( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_ERROR, format, ##__VA_ARGS__)
 	#define ESP_COREDUMP_LOGW( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_WARN, format, ##__VA_ARGS__)
 	#define ESP_COREDUMP_LOGI( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_INFO, format, ##__VA_ARGS__)
 	#define ESP_COREDUMP_LOGD( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_DEBUG, format, ##__VA_ARGS__)
 	#define ESP_COREDUMP_LOGV( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_VERBOSE, format, ##__VA_ARGS__)
-#endif
+#endif */
 
 // ################################ Using ROM based esp_rom_printf #################################
 
