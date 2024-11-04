@@ -14,7 +14,7 @@
 #include "soc/soc_memory_layout.h"
 
 #include "hal_platform.h"
-#include "x_string_general.h"
+#include "string_general.h"
 
 // ########################################### Macros ##############################################
 
