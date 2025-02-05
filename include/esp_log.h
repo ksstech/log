@@ -9,7 +9,7 @@
 #include "esp_rom_sys.h"
 #include "esp_cpu.h"
 
-// only here if we do not disable COREDUMP_LOGS in original SDK. 
+// only here if we do not disable COREDUMP_LOGS in original SDK.
 #include "esp_log_level.h"
 #include "esp_log_color.h"
 
