@@ -3,6 +3,9 @@
  * Copyright (c) 2017-25 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
+#include "hal_platform.h"
+#include "string_general.h"
+
 #include <string.h>
 
 #include "esp_attr.h"
@@ -12,9 +15,6 @@
 #include "esp_log.h"
 #include "sys/queue.h"
 #include "soc/soc_memory_layout.h"
-
-#include "hal_platform.h"
-#include "string_general.h"
 
 // ########################################### Macros ##############################################
 
