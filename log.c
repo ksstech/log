@@ -34,7 +34,11 @@ void xvSyslog(int Priority, const char * MsgID, const char * format, va_list arg
 
 // ################################### public/global functions #####################################
 
-void esp_log_level_set(const char* tag, esp_log_level_t level) { esp_log_default_level = level; }
+void esp_log_level_set(const char* tag, esp_log_level_t level) {
+	esp_log_default_level = level;
+	void vSyslogSetConsoleLevel(int);
+	vSyslogSetConsoleLevel((level > 0) ? level + 2 : level);
+}
 
 /* As of 20200323) wifi library changed format to 3 separate printf() calls
  * #1 "format="%c (%d) %s" and prints just the level, tag & timestamp hence just discard
