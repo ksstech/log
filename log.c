@@ -50,9 +50,8 @@ void IRAM_ATTR esp_log_writev(esp_log_level_t level, const char* tag, const char
 			int xTS = va_arg(args, int);				// spill the timestamp
 			(void) xTS;
 		}
-		if ((strcmp(tag, "wifi") == 0) &&				// resolve WIFI lib anomalies
-		   ((strcmp(format, " %s:") == 0) ||			// remove extra " wifi:"
-			(strcmp(format, "%s") == 0))) {				// remove extra CRLF
+		// resolve WIFI lib anomalies, extra " wifi:", extra CRLF
+		if ((strcmp(tag, "wifi") == 0) && (strcmp(format, " %s:") == 0 || strcmp(format, "%s") == 0))
 			return;
 		}
 	}
