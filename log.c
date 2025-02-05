@@ -1,6 +1,6 @@
 /*
  * log.c - replacement for esp-idf module, redirects log output to syslog functionality
- * Copyright (c) 2017-24 Andre M. Maree / KSS Technologies (Pty) Ltd.
+ * Copyright (c) 2017-25 Andre M. Maree / KSS Technologies (Pty) Ltd.
  */
 
 #include <string.h>
@@ -32,7 +32,7 @@ esp_log_level_t esp_log_default_level = CONFIG_LOG_DEFAULT_LEVEL;
 
 void xvSyslog(int Priority, const char * MsgID, const char * format, va_list args);
 
-// #################################### publi/global functions #####################################
+// ################################### public/global functions #####################################
 
 void esp_log_level_set(const char* tag, esp_log_level_t level) { esp_log_default_level = level; }
 
