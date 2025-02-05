@@ -151,11 +151,7 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
  *
  */
 #define ESP_LOG_BUFFER_HEX_LEVEL( tag, buffer, buff_len, level )			\
-    do {																	\
-        if ((level) <= LOG_LOCAL_LEVEL) { 									\
-            esp_log_buffer_hex_internal( tag, buffer, buff_len, level ); 	\
-        } 																	\
-    } while(0)
+    do { if ((level) <= LOG_LOCAL_LEVEL) { esp_log_buffer_hex_internal( tag, buffer, buff_len, level ); } } while(0)
 
 /**
  * @brief Log a buffer of characters at specified level, separated into 16 bytes each line. Buffer should contain only printable characters.
@@ -167,11 +163,7 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
  *
  */
 #define ESP_LOG_BUFFER_CHAR_LEVEL( tag, buffer, buff_len, level )			\
-    do {																	\
-        if ((level) <= LOG_LOCAL_LEVEL) { 									\
-            esp_log_buffer_char_internal( tag, buffer, buff_len, level );	\
-        }																	\
-    } while(0)
+    do { if ((level) <= LOG_LOCAL_LEVEL) { esp_log_buffer_char_internal( tag, buffer, buff_len, level ); } } while(0)
 
 /**
  * @brief Dump a buffer to the log at specified level.
@@ -190,11 +182,7 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
  * @param level level of the log
  */
 #define ESP_LOG_BUFFER_HEXDUMP( tag, buffer, buff_len, level )				\
-    do {																	\
-        if ((level) <= LOG_LOCAL_LEVEL) { 									\
-            esp_log_buffer_hexdump_internal( tag, buffer, buff_len, level);	\
-        }																	\
-    } while(0)
+    do { if ((level) <= LOG_LOCAL_LEVEL) { esp_log_buffer_hexdump_internal( tag, buffer, buff_len, level);	} } while(0)
 
 /**
  * @brief Log a buffer of hex bytes at Info level
@@ -207,11 +195,7 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
  *
  */
 #define ESP_LOG_BUFFER_HEX(tag, buffer, buff_len)							\
-    do {																	\
-        if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO) {								\
-            ESP_LOG_BUFFER_HEX_LEVEL( tag, buffer, buff_len, ESP_LOG_INFO );\
-        }																	\
-    } while(0)
+    do { if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO) { ESP_LOG_BUFFER_HEX_LEVEL( tag, buffer, buff_len, ESP_LOG_INFO ); } } while(0)
 
 /**
  * @brief Log a buffer of characters at Info level. Buffer should contain only printable characters.
@@ -224,11 +208,7 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
  *
  */
 #define ESP_LOG_BUFFER_CHAR(tag, buffer, buff_len)								\
-    do {																		\
-        if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO) {									\
-            ESP_LOG_BUFFER_CHAR_LEVEL( tag, buffer, buff_len, ESP_LOG_INFO );	\
-        }																		\
-    } while(0)
+    do { if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO) { ESP_LOG_BUFFER_CHAR_LEVEL( tag, buffer, buff_len, ESP_LOG_INFO ); } } while(0)
 
 //to be back compatible
 #define esp_log_buffer_hex		ESP_LOG_BUFFER_HEX
@@ -240,13 +220,9 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 
 // ######################## Common macros for BOOTLOADER+APP and DRAM logging ######################
 
-#define ESP_LOG_LEVEL(level, tag, format, ...) do {			\
-		esp_log_write(level, tag, format, ##__VA_ARGS__);	\
-	} while(0)
+#define ESP_LOG_LEVEL(level, tag, format, ...) do { esp_log_write(level, tag, format, ##__VA_ARGS__); } while(0)
 
-#define ESP_LOG_LEVEL_LOCAL(level, tag, format, ... ) do { 									\
-		if (level <= LOG_LOCAL_LEVEL) { ESP_LOG_LEVEL(level, tag, format, ## __VA_ARGS__); }\
-	} while(0)
+#define ESP_LOG_LEVEL_LOCAL(level, tag, format, ... ) do { if (level <= LOG_LOCAL_LEVEL) { ESP_LOG_LEVEL(level, tag, format, ## __VA_ARGS__); } } while(0)
 
 #ifdef BOOTLOADER_BUILD
 	#define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level))
