@@ -57,7 +57,6 @@ void IRAM_ATTR esp_log_writev(esp_log_level_t level, const char* tag, const char
 		// resolve WIFI lib anomalies, extra " wifi:", extra CRLF
 		if ((strcmp(tag, "wifi") == 0) && (strcmp(format, " %s:") == 0 || strcmp(format, "%s") == 0))
 			return;
-		}
 	}
 	level += (level > 0) ? 2 : 0;
 	xvSyslog(level, tag, format, args);
