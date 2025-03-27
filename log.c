@@ -13,6 +13,8 @@
 #include "soc/soc.h"
 
 #include "esp_log.h"
+#include "esp_private/log_util.h"
+
 #include "sys/queue.h"
 #include "soc/soc_memory_layout.h"
 
@@ -26,6 +28,8 @@
 
 // #################################### local/static variables #####################################
 
+esp_log_cache_enabled_t esp_log_cache_enabled = NULL;
+
 esp_log_level_t esp_log_default_level = CONFIG_LOG_DEFAULT_LEVEL;
 
 // ################################# forward function declarations #################################
@@ -33,6 +37,9 @@ esp_log_level_t esp_log_default_level = CONFIG_LOG_DEFAULT_LEVEL;
 void xvSyslog(int Priority, const char * MsgID, const char * format, va_list args);
 
 // ################################### public/global functions #####################################
+
+
+void esp_log_util_set_cache_enabled_cb(esp_log_cache_enabled_t func) { esp_log_cache_enabled = func; }
 
 void esp_log_level_set(const char* tag, esp_log_level_t level) {
 	esp_log_default_level = level;
@@ -44,6 +51,8 @@ void esp_log_level_set(const char* tag, esp_log_level_t level) {
  * #1 "format="%c (%d) %s" and prints just the level, tag & timestamp hence just discard
  * #2 prints the actual message hence display as is
  * #3 format="%s" and prints CR/LF pair hence discard
+ * As of 2024xxyy (v5.4) a major rewrite of the log component happened.
+ * AMM still to review and update
  */
 void IRAM_ATTR esp_log_writev(esp_log_level_t level, const char* tag, const char * format, va_list args) {
 	if (format) {
