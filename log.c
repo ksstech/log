@@ -30,8 +30,6 @@
 
 esp_log_cache_enabled_t esp_log_cache_enabled = NULL;
 
-esp_log_level_t esp_log_default_level = CONFIG_LOG_DEFAULT_LEVEL;
-
 // ################################# forward function declarations #################################
 
 void xvSyslog(int Priority, const char * MsgID, const char * format, va_list args);
@@ -42,8 +40,6 @@ void xvSyslog(int Priority, const char * MsgID, const char * format, va_list arg
 void esp_log_util_set_cache_enabled_cb(esp_log_cache_enabled_t func) { esp_log_cache_enabled = func; }
 
 void esp_log_level_set(const char* tag, esp_log_level_t level) {
-	esp_log_default_level = level;
-	void vSyslogSetConsoleLevel(int);
 	vSyslogSetConsoleLevel((level > 0) ? level + 2 : level);
 }
 
