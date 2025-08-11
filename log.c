@@ -44,7 +44,7 @@ void esp_log_level_set(const char* tag, esp_log_level_t level) {
 }
 
 /* As of 20200323) wifi library changed format to 3 separate printf() calls
- * #1 "format="%c (%d) %s" and prints just the level, tag & timestamp hence just discard
+ * #1 "format="%c (%d) %s:" and prints just the level, tag & timestamp hence just discard
  * #2 prints the actual message hence display as is
  * #3 format="%s" and prints CR/LF pair hence discard
  * As of 2024xxyy (v5.4) a major rewrite of the log component happened.
