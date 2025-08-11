@@ -1,7 +1,7 @@
 idf_build_get_property(target IDF_TARGET)
 set( srcs "log.c" )
 set( include_dirs "include" )
-set( requires )
+set( requires syslog )
 set( priv_requires )
 if(${target} STREQUAL "linux")
     # We leave log buffers out for now on Linux since it's rarely used. Explicitely add esp_rom to Linux target
