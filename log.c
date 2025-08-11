@@ -5,6 +5,7 @@
 
 #include "hal_platform.h"
 #include "string_general.h"
+#include "syslog.h"
 
 #include <string.h>
 
@@ -41,6 +42,11 @@ void esp_log_util_set_cache_enabled_cb(esp_log_cache_enabled_t func) { esp_log_c
 
 void esp_log_level_set(const char* tag, esp_log_level_t level) {
 	vSyslogSetConsoleLevel((level > 0) ? level + 2 : level);
+}
+
+esp_log_level_t esp_log_level_get(const char* tag) {
+	esp_log_level_t level = xSyslogGetConsoleLevel();
+	return level ? level - 2 : level;		// convert back to esp_log_level_t
 }
 
 /* As of 20200323) wifi library changed format to 3 separate printf() calls
