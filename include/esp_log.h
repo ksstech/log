@@ -220,20 +220,29 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 
 // ######################## Common macros for BOOTLOADER+APP and DRAM logging ######################
 
-#define ESP_LOG_LEVEL(level, tag, format, ...) do { esp_log_write(level, tag, format, ##__VA_ARGS__); } while(0)
+#define ESP_LOG_LEVEL(level, tag, format, ...) 					\
+	do { 														\
+		esp_log_write(level, tag, format, ##__VA_ARGS__);		\
+	} while(0)
 
-#define ESP_LOG_LEVEL_LOCAL(level, tag, format, ... ) do { if (level <= LOG_LOCAL_LEVEL) { ESP_LOG_LEVEL(level, tag, format, ## __VA_ARGS__); } } while(0)
+#define ESP_LOG_LEVEL_LOCAL(level, tag, format, ... ) 			\
+	do {														\
+		if (level <= LOG_LOCAL_LEVEL) {							\
+			ESP_LOG_LEVEL(level, tag, format, ## __VA_ARGS__);	\
+		}														\
+	} while(0)
 
 #ifdef BOOTLOADER_BUILD
-	#define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level))
+//	#define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level))
 #else
 	/* For early log, there is no log tag filtering. So we want to log only if both the LOG_LOCAL_LEVEL and the
 	   currently configured min log level are higher than the log level */
-	#define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level) && esp_log_default_level >= (log_level))
+//	#define _ESP_LOG_EARLY_ENABLED(log_level) (LOG_LOCAL_LEVEL >= (log_level) && esp_log_default_level >= (log_level))
 #endif
 
 #define LOG_EARLY_FORMAT_STRING		"%d.%03d (%d) %d boot %s "
-#define ESP_LOG_EARLY_IMPL(tag, format, level, log_tag_letter, ...) do {									\
+#define ESP_LOG_EARLY_IMPL(tag, format, level, log_tag_letter, ...) 										\
+	do {																									\
 		if (_ESP_LOG_EARLY_ENABLED(level)) { 																\
 			uint32_t mS = esp_log_timestamp();																\
 			esp_rom_printf(LOG_EARLY_FORMAT_STRING, mS/1000, mS%1000, level, esp_cpu_get_core_id(), tag);	\
@@ -341,6 +350,7 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 
 // ################################# Coredump logging support ######################################
 
+/*
 #ifdef ESP_COREDUMP_LOG
 	#undef ESP_COREDUMP_LOG
 	#undef ESP_COREDUMP_LOGE
@@ -367,44 +377,10 @@ void vSyslog(int Priority, const char * MsgID, const char * format, ...);
 #define ESP_COREDUMP_LOGI( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_INFO, format, ##__VA_ARGS__)
 #define ESP_COREDUMP_LOGD( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_DEBUG, format, ##__VA_ARGS__)
 #define ESP_COREDUMP_LOGV( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_VERBOSE, format, ##__VA_ARGS__)
+*/
 
-/* #ifndef ESP_COREDUMP_LOG
-	#if CONFIG_ESP_COREDUMP_LOGS
-		#define DRAM_FORMAT_STRING		DRAM_STR("%d.%03d (%d) %d boot crdp ")
-		#define ESP_COREDUMP_LOG(level, format, ... )												\
-			if (LOG_LOCAL_LEVEL >= level) { 														\
-				uint32_t mS = esp_log_early_timestamp();											\
-				esp_rom_printf(DRAM_FORMAT_STRING, mS/1000, mS%1000, level, esp_cpu_get_core_id());	\
-				esp_rom_printf(DRAM_STR("" format "\n"), ##__VA_ARGS__);							\
-			}
-	#else
-		#define ESP_COREDUMP_LOG(level, format, ... )
-	#endif
-
-	#define ESP_COREDUMP_LOGE( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_ERROR, format, ##__VA_ARGS__)
-	#define ESP_COREDUMP_LOGW( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_WARN, format, ##__VA_ARGS__)
-	#define ESP_COREDUMP_LOGI( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_INFO, format, ##__VA_ARGS__)
-	#define ESP_COREDUMP_LOGD( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_DEBUG, format, ##__VA_ARGS__)
-	#define ESP_COREDUMP_LOGV( format, ... )  ESP_COREDUMP_LOG(ESP_LOG_VERBOSE, format, ##__VA_ARGS__)
-#endif */
-
-// ################################ Using ROM based esp_rom_printf #################################
-
-extern unsigned long long RunTime;
-
-#define	_LL_(f)						" [%s:%d] " f "", __FUNCTION__, __LINE__
-#define	_LT_(f)						" [%d.%03d] " f "", RunTime / MILLION, (Runtime % MILLION) / THOUSAND
-#define	_LTL_(f)					" [%d.%03d %s:%d] " f "", RunTime / MILLION, (Runtime % MILLION) / THOUSAND, __FUNCTION__, __LINE__
-
-#define	LP(f, ...)					esp_rom_printf(f, ##__VA_ARGS__)
-#define	LPL(f, ...)					esp_rom_printf(_LL_(f), ##__VA_ARGS__)
-#define	LPT(f, ...)					esp_rom_printf(_LT_(f), ##__VA_ARGS__)
-#define	LPTL(f, ...)				esp_rom_printf(_LTL_(f), ##__VA_ARGS__)
-
-#define	IF_LP(T, f, ...)			if (T) LP(f, ##__VA_ARGS__)
-#define	IF_LPL(T, f, ...)			if (T) LPL(f, ##__VA_ARGS__)
-#define	IF_LPT(T, f, ...)			if (T) LPT(f, ##__VA_ARGS__)
-#define	IF_LPTL(T, f, ...)			if (T) LPTL(f, ##__VA_ARGS__)
+// Specifically here in case of customer coredump above being disabled
+#define LOG_FORMAT(letter, format)  LOG_COLOR_ ## letter #letter " (%" PRIu32 ") %s: " format LOG_RESET_COLOR "\n"
 
 #ifdef __cplusplus
 }
