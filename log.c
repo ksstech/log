@@ -56,7 +56,23 @@ esp_log_level_t esp_log_level_get(const char* tag) {
  * As of 2024xxyy (v5.4) a major rewrite of the log component happened.
  * AMM still to review and update
  */
-void IRAM_ATTR esp_log_writev(esp_log_level_t level, const char* tag, const char * format, va_list args) {
+/* NOT IRAM_ATTR - deliberately, and the reasoning matters because it looks like it should be.
+ *
+ * These override IDF's esp_log_write[v]. IDF does NOT mark its own versions IRAM_ATTR
+ * (components/log/src/os/log_write.c), so IDF's contract is that they are task-context only.
+ * Constrained-context logging in IDF goes via ESP_EARLY_LOGx / ESP_DRAM_LOGx, both of which expand
+ * straight to esp_rom_printf (esp_log.h ESP_LOG_EARLY_IMPL) and never enter this function.
+ *
+ * That contract is what makes the strstr()/strcmp() below safe: format and tag are caller-supplied
+ * .flash.rodata literals, so reading them requires the cache to be enabled. Our own ESP_LOGx uses
+ * are all in cmd-proc/cmd-nvs.c, ie task context, so both halves of the contract hold.
+ *
+ * Marking these IRAM_ATTR advertised a cache-disabled capability they cannot deliver anyway - the
+ * strstr() would fault before xvSyslog() ever got the chance to. If a future IDF starts calling
+ * esp_log_write from a cache-disabled path, the fix is to bail out early here, NOT to re-add
+ * IRAM_ATTR, because the whole chain below (xReport, xPrintFX, xStdioWrite, xUBufWrite) is in
+ * flash. See analysis/uart-console-io-flow.md S50.2/S71. */
+void esp_log_writev(esp_log_level_t level, const char* tag, const char * format, va_list args) {
 	if (format) {
 		void * pV = strstr(format, "%c (%d) %s:");
 		if (pV) {
@@ -73,7 +89,7 @@ void IRAM_ATTR esp_log_writev(esp_log_level_t level, const char* tag, const char
 	xvSyslog(level, tag, format, args);
 }
 
-void IRAM_ATTR esp_log_write(esp_log_level_t level, const char* tag, const char* format, ...) {
+void esp_log_write(esp_log_level_t level, const char* tag, const char* format, ...) {
 	va_list args;
 	va_start(args, format);
 	esp_log_writev(level, tag, format, args);

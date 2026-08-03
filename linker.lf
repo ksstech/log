@@ -1,7 +1,16 @@
 [mapping:log]
 archive: liblog.a
 entries:
-    log:esp_log_write (noflash)
+    # esp_log_write deliberately NOT (noflash).
+    # It is the live entry point in this fork (esp_log.h ESP_LOG_LEVEL -> esp_log_write), but it
+    # immediately calls esp_log_writev, which was never listed here and so sits in flash. Pinning
+    # only the outer function bought nothing - the first call left IRAM anyway - and it overrode
+    # the IRAM_ATTR removal on the definition, leaving the two halves inconsistent.
+    # Both are task-context only: constrained-context logging goes via ESP_EARLY_LOGx /
+    # ESP_DRAM_LOGx, which expand to esp_rom_printf and never enter esp_log_write. See log.c.
+    #
+    # The entries below ARE required: ESP_LOG_EARLY_IMPL calls esp_log_timestamp() directly, and
+    # the impl_lock trio guards the log path.
     log_freertos:esp_log_timestamp (noflash)
     log_freertos:esp_log_early_timestamp (noflash)
     log_freertos:esp_log_impl_lock (noflash)
