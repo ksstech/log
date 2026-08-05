@@ -41,10 +41,20 @@ void xvSyslog(int Priority, const char * MsgID, const char * format, va_list arg
 void esp_log_util_set_cache_enabled_cb(esp_log_cache_enabled_t func) { esp_log_cache_enabled = func; }
 
 void esp_log_level_set(const char* tag, esp_log_level_t level) {
-	vSyslogSetConsoleLevel((level > 0) ? level + 2 : level);
+	/* IDF semantics: "*" = set the GLOBAL default, a named tag = per-tag override. This bridge has
+	 * no per-tag machinery (deliberate - syslog's dual runtime thresholds plus compile-time
+	 * LOG_LOCAL_LEVEL per component cover that need), so honour ONLY the wildcard and IGNORE named
+	 * tags. The previous version applied EVERY call globally: esp_wifi's wifi_init.c calls this 4x
+	 * with CONFIG_LOG_DEFAULT_LEVEL (2/WARN) at every boot, silently forcing ioSLOGhi to 4 -
+	 * stomping the configured level and, because the console threshold is the MASTER gate in
+	 * xvSyslog(), hiding every NOTICE/INFO line from console AND host, fleet-wide, since boot. */
+	if (tag && tag[0] == '*' && tag[1] == 0)
+		vSyslogSetConsoleLevel((level > 0) ? level + 2 : level);
 }
 
 esp_log_level_t esp_log_level_get(const char* tag) {
+	/* No per-tag levels exist: every tag runs at the effective global (console) level, so
+	 * returning it for any tag is the truthful answer under this design. */
 	esp_log_level_t level = xSyslogGetConsoleLevel();
 	return level ? level - 2 : level;		// convert back to esp_log_level_t
 }
