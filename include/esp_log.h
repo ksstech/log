@@ -129,7 +129,7 @@ void esp_log_write(esp_log_level_t level, const char* tag, const char* format, .
  */
 void esp_log_writev(esp_log_level_t level, const char* tag, const char* format, va_list args);
 
-int vSyslog(int Priority, const char * MsgID, const char * format, ...);	// 1 = reached host/queue
+int xSyslog(int Priority, const char * MsgID, const char * format, ...);	// 1 = reached host/queue
 
 #include "esp_log_internal.h"
 
