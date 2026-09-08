@@ -33,7 +33,7 @@ esp_log_cache_enabled_t esp_log_cache_enabled = NULL;
 
 // ################################# forward function declarations #################################
 
-void xvSyslog(int Priority, const char * MsgID, const char * format, va_list args);
+int xvSyslog(int Priority, const char * MsgID, const char * format, va_list args);	// 1 = reached host/queue
 
 // ################################### public/global functions #####################################
 
