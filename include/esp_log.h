@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <inttypes.h>
+#include <string.h>
 #include "sdkconfig.h"
 #include "esp_rom_sys.h"
 #include "esp_cpu.h"
