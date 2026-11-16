@@ -37,6 +37,9 @@ int xvSyslog(int Priority, const char * MsgID, const char * format, va_list args
 
 // ################################### public/global functions #####################################
 
+/* Weak application hook: return 1 to drop a message from an ESP-IDF component before it reaches syslog. The default
+ * drops nothing. A project overrides it where an IDF tag fills a small console buffer (cb-blaster: RTC ring). */
+__attribute__((weak)) int xLogFilter(esp_log_level_t level, const char * tag) { (void) level; (void) tag; return 0; }
 
 void esp_log_util_set_cache_enabled_cb(esp_log_cache_enabled_t func) { esp_log_cache_enabled = func; }
 
@@ -95,6 +98,8 @@ void esp_log_writev(esp_log_level_t level, const char* tag, const char * format,
 		if ((strcmp(tag, "wifi") == 0) && (strcmp(format, " %s:") == 0 || strcmp(format, "%s") == 0))
 			return;
 	}
+	if (xLogFilter(level, tag))
+		return;
 	level += (level > 0) ? 2 : 0;
 	xvSyslog(level, tag, format, args);
 }
